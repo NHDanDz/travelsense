@@ -1,6 +1,8 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
+  output: 'standalone', // Thêm dòng này cho Render
+  
   images: {
     remotePatterns: [
       {
@@ -17,28 +19,20 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: '**',  // Cho phép tất cả domain khác (nếu cần)
+        hostname: '**',
       },
     ],
   },
-  // Cấu hình Turbopack theo hướng dẫn mới
+  
   experimental: {
     turbo: {
-      // Sử dụng rules thay vì loaders
-      rules: {
-        // Ví dụ: Nếu bạn có custom loader cho .mdx
-        // "*.mdx": ["mdx-loader"]
-      },
-      resolveAlias: {
-        // Ánh xạ module nếu cần
-        // 'module-name': 'actual-module-path'
-      },
+      rules: {},
+      resolveAlias: {},
     },
     ppr: 'incremental',
   },
-  // Cấu hình webpack để xử lý các module đặc biệt
+  
   webpack: (config, { isServer }) => {
-    // Resolve the "Can't resolve 'fs'" issue with mapbox-gl
     if (!isServer) {
       config.resolve.fallback = { 
         ...config.resolve.fallback,
@@ -48,9 +42,8 @@ const nextConfig: NextConfig = {
         zlib: false
       };
     }
-    
     return config;
-  }
+  },
 };
 
 export default nextConfig;
