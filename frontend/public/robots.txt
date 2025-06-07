@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://507c-113-185-48-241.ngrok-free.app/sitemap.xml

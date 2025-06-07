@@ -1,4 +1,4 @@
-// app/page.tsx - Updated with enhanced PWA integration
+// app/page.tsx - Updated với iOS PWA Helper
 'use client';
  
 import Link from 'next/link';
@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import SharedLayout from './components/layout/SharedLayout';
 import PWAInstallButton, { SimpleInstallButton, usePWAStatus } from './components/PWAInstallButton';
+import iOSPWAHelper from './components/iOSPWAHelper';
 import { useState, useEffect } from 'react';
 
 // Featured places data
@@ -134,14 +135,10 @@ const getCategoryIcon = (type: string) => {
 
 // Enhanced PWA Features Section Component
 const PWAFeaturesSection = () => {
-  // Sửa lỗi 1 & 2: Destructure đúng các property từ usePWAStatus
-  const { isInstalled, isStandalone, isInstallable } = usePWAStatus();
-  
-  // Sửa lỗi 2: Tạo custom hook để detect online status
+  const { isInstalled, isInstallable } = usePWAStatus();
   const [isOnline, setIsOnline] = useState(true);
-  
-  // Sửa lỗi 3: Tạo function để detect platform
   const [platform, setPlatform] = useState<string>('');
+  const [showIOSHelper, setShowIOSHelper] = useState(false);
   
   useEffect(() => {
     // Detect online/offline status
@@ -196,196 +193,219 @@ const PWAFeaturesSection = () => {
     }
   ];
 
+  const handleIOSInstall = () => {
+    if (platform === 'ios') {
+      setShowIOSHelper(true);
+    }
+  };
+
   return (
-    <section className="py-20 bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-800 text-white overflow-hidden relative">
-      {/* Background compass pattern */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-10 left-10 w-32 h-32">
-          <svg viewBox="0 0 128 128" className="w-full h-full text-white animate-spin-slow">
-            <circle cx="64" cy="64" r="50" fill="none" stroke="currentColor" strokeWidth="2"/>
-            <path d="M 64 24 L 59 44 L 64 39 L 69 44 Z" fill="currentColor"/>
-            <path d="M 104 64 L 84 59 L 89 64 L 84 69 Z" fill="currentColor"/>
-            <path d="M 64 104 L 69 84 L 64 89 L 59 84 Z" fill="currentColor"/>
-            <path d="M 24 64 L 44 69 L 39 64 L 44 59 Z" fill="currentColor"/>
-          </svg>
-        </div>
-        <div className="absolute bottom-10 right-10 w-48 h-48">
-          <svg viewBox="0 0 192 192" className="w-full h-full text-white animate-spin-reverse">
-            <circle cx="96" cy="96" r="75" fill="none" stroke="currentColor" strokeWidth="1.5"/>
-            <path d="M 96 36 L 89 66 L 96 58.5 L 103 66 Z" fill="currentColor"/>
-            <path d="M 156 96 L 126 89 L 133.5 96 L 126 103 Z" fill="currentColor"/>
-            <path d="M 96 156 L 103 126 L 96 133.5 L 89 126 Z" fill="currentColor"/>
-            <path d="M 36 96 L 66 103 L 58.5 96 L 66 89 Z" fill="currentColor"/>
-          </svg>
-        </div>
-      </div>
-
-      <div className="container mx-auto px-6 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-          <div>
-            {isInstalled ? (
-              <>
-                <div className="inline-flex items-center bg-green-500/20 text-green-300 px-4 py-2 rounded-full text-sm font-medium mb-6">
-                  <CheckCircle className="w-4 h-4 mr-2" />
-                  PWA đã được cài đặt
-                </div>
-                <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
-                  🎉 Cảm ơn bạn đã cài đặt!
-                </h2>
-                <p className="text-xl text-blue-100 mb-8">
-                  Bây giờ bạn có thể truy cập TravelSense nhanh chóng ngay từ màn hình chính, 
-                  thậm chí khi không có kết nối internet.
-                </p>
-              </>
-            ) : (
-              <>
-                <div className="inline-flex items-center bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm font-medium mb-6">
-                  🧭 Progressive Web App
-                </div>
-                <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
-                  Trải nghiệm như ứng dụng thật
-                </h2>
-                <p className="text-xl text-blue-100 mb-8">
-                  Cài đặt TravelSense như một ứng dụng thực sự trên thiết bị của bạn. 
-                  Truy cập nhanh, hoạt động offline, và trải nghiệm mượt mà.
-                </p>
-              </>
-            )}
-            
-            {/* PWA Features Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-              {pwaFeatures.map((feature, index) => (
-                <div key={index} className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
-                  <div className="flex items-center mb-2">
-                    {feature.icon}
-                    <span className="ml-2 text-sm font-medium text-blue-200">{feature.highlight}</span>
-                  </div>
-                  <h3 className="font-semibold text-white mb-1">{feature.title}</h3>
-                  <p className="text-sm text-blue-100 leading-relaxed">{feature.description}</p>
-                </div>
-              ))}
-            </div>
-            
-            {!isInstalled && (
-              <div className="flex flex-wrap gap-4">
-                <SimpleInstallButton className="bg-white text-blue-700 hover:bg-blue-50 shadow-lg" />
-                
-                {/* Platform specific instructions */}
-                {platform === 'ios' && (
-                  <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-4 text-sm">
-                    <div className="flex items-center text-white mb-2">
-                      <FaApple className="w-4 h-4 mr-2" />
-                      <span className="font-medium">iOS Safari:</span>
-                    </div>
-                    <div className="text-blue-100 space-y-1">
-                      <div>1. Nhấn nút Share 📤</div>
-                      <div>2. Chọn "Thêm vào màn hình chính"</div>
-                      <div>3. Nhấn "Thêm"</div>
-                    </div>
-                  </div>
-                )}
-                
-                {/* Fallback mobile app links */}
-                <div className="flex gap-3">
-                  <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-3 text-xs text-center min-w-[120px]">
-                    <FaApple className="w-6 h-6 mx-auto mb-1" />
-                    <div className="text-blue-200">Sắp có trên</div>
-                    <div className="font-semibold">App Store</div>
-                  </div>
-                  <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-3 text-xs text-center min-w-[120px]">
-                    <SiGoogleplay className="w-6 h-6 mx-auto mb-1" />
-                    <div className="text-blue-200">Sắp có trên</div>
-                    <div className="font-semibold">Google Play</div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Online/Offline Status */}
-            <div className="mt-6 flex items-center text-sm">
-              <div className={`w-3 h-3 rounded-full mr-2 ${isOnline ? 'bg-green-400' : 'bg-red-400'}`}></div>
-              <span className="text-blue-100">
-                {isOnline ? 'Đang trực tuyến' : 'Đang ngoại tuyến'} 
-                {!isOnline && ' - Tính năng offline vẫn hoạt động'}
-              </span>
-            </div>
+    <>
+      <section className="py-20 bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-800 text-white overflow-hidden relative">
+        {/* Background compass pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-10 left-10 w-32 h-32">
+            <svg viewBox="0 0 128 128" className="w-full h-full text-white animate-spin-slow">
+              <circle cx="64" cy="64" r="50" fill="none" stroke="currentColor" strokeWidth="2"/>
+              <path d="M 64 24 L 59 44 L 64 39 L 69 44 Z" fill="currentColor"/>
+              <path d="M 104 64 L 84 59 L 89 64 L 84 69 Z" fill="currentColor"/>
+              <path d="M 64 104 L 69 84 L 64 89 L 59 84 Z" fill="currentColor"/>
+              <path d="M 24 64 L 44 69 L 39 64 L 44 59 Z" fill="currentColor"/>
+            </svg>
           </div>
-          
-          {/* Right side - Enhanced visual */}
-          <div className="relative">
-            <div className="relative z-10 mx-auto max-w-sm">
-              {/* Phone mockup */}
-              <div className="bg-gray-900 rounded-[2.5rem] p-2 shadow-2xl">
-                <div className="bg-white rounded-[2rem] overflow-hidden">
-                  {/* Phone header */}
-                  <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-4 text-white">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        {/* Beautiful compass icon */}
-                        <div className="w-8 h-8">
-                          <svg viewBox="0 0 32 32" className="w-full h-full text-yellow-300">
-                            <circle cx="16" cy="16" r="12" fill="none" stroke="currentColor" strokeWidth="1.5"/>
-                            <path d="M 16 8 L 14 14 L 16 12 L 18 14 Z" fill="currentColor"/>
-                            <path d="M 24 16 L 18 14 L 20 16 L 18 18 Z" fill="currentColor"/>
-                            <path d="M 16 24 L 18 18 L 16 20 L 14 18 Z" fill="currentColor"/>
-                            <path d="M 8 16 L 14 18 L 12 16 L 14 14 Z" fill="currentColor"/>
-                            <circle cx="16" cy="16" r="2" fill="#ff4757"/>
-                          </svg>
-                        </div>
-                        <span className="font-bold">TravelSense</span>
+          <div className="absolute bottom-10 right-10 w-48 h-48">
+            <svg viewBox="0 0 192 192" className="w-full h-full text-white animate-spin-reverse">
+              <circle cx="96" cy="96" r="75" fill="none" stroke="currentColor" strokeWidth="1.5"/>
+              <path d="M 96 36 L 89 66 L 96 58.5 L 103 66 Z" fill="currentColor"/>
+              <path d="M 156 96 L 126 89 L 133.5 96 L 126 103 Z" fill="currentColor"/>
+              <path d="M 96 156 L 103 126 L 96 133.5 L 89 126 Z" fill="currentColor"/>
+              <path d="M 36 96 L 66 103 L 58.5 96 L 66 89 Z" fill="currentColor"/>
+            </svg>
+          </div>
+        </div>
+
+        <div className="container mx-auto px-6 relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            <div>
+              {isInstalled ? (
+                <>
+                  <div className="inline-flex items-center bg-green-500/20 text-green-300 px-4 py-2 rounded-full text-sm font-medium mb-6">
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    PWA đã được cài đặt
+                  </div>
+                  <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
+                    🎉 Cảm ơn bạn đã cài đặt!
+                  </h2>
+                  <p className="text-xl text-blue-100 mb-8">
+                    Bây giờ bạn có thể truy cập TravelSense nhanh chóng ngay từ màn hình chính, 
+                    thậm chí khi không có kết nối internet.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <div className="inline-flex items-center bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm font-medium mb-6">
+                    🧭 Progressive Web App
+                  </div>
+                  <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
+                    Trải nghiệm như ứng dụng thật
+                  </h2>
+                  <p className="text-xl text-blue-100 mb-8">
+                    Cài đặt TravelSense như một ứng dụng thực sự trên thiết bị của bạn. 
+                    Truy cập nhanh, hoạt động offline, và trải nghiệm mượt mà.
+                  </p>
+                </>
+              )}
+              
+              {/* PWA Features Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+                {pwaFeatures.map((feature, index) => (
+                  <div key={index} className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
+                    <div className="flex items-center mb-2">
+                      {feature.icon}
+                      <span className="ml-2 text-sm font-medium text-blue-200">{feature.highlight}</span>
+                    </div>
+                    <h3 className="font-semibold text-white mb-1">{feature.title}</h3>
+                    <p className="text-sm text-blue-100 leading-relaxed">{feature.description}</p>
+                  </div>
+                ))}
+              </div>
+              
+              {!isInstalled && (
+                <div className="flex flex-wrap gap-4">
+                  {platform === 'ios' ? (
+                    <button
+                      onClick={handleIOSInstall}
+                      className="inline-flex items-center px-4 py-2 bg-white text-blue-700 hover:bg-blue-50 rounded-lg font-medium transition-colors shadow-lg"
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      Cài đặt ứng dụng
+                    </button>
+                  ) : (
+                    <SimpleInstallButton className="bg-white text-blue-700 hover:bg-blue-50 shadow-lg" />
+                  )}
+                  
+                  {/* Platform specific instructions */}
+                  {platform === 'ios' && (
+                    <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-4 text-sm">
+                      <div className="flex items-center text-white mb-2">
+                        <FaApple className="w-4 h-4 mr-2" />
+                        <span className="font-medium">iOS Safari:</span>
                       </div>
-                      <div className="flex space-x-1">
-                        <div className="w-2 h-2 bg-white/60 rounded-full"></div>
-                        <div className="w-2 h-2 bg-white/60 rounded-full"></div>
-                        <div className="w-2 h-2 bg-white rounded-full"></div>
+                      <div className="text-blue-100 space-y-1">
+                        <div>1. Nhấn nút Share 📤</div>
+                        <div>2. Chọn "Thêm vào màn hình chính"</div>
+                        <div>3. Nhấn "Thêm"</div>
                       </div>
                     </div>
-                  </div>
+                  )}
                   
-                  {/* Phone content */}
-                  <div className="p-4 space-y-3">
-                    <div className="flex justify-between items-center">
-                      <h3 className="font-bold text-gray-800">Địa điểm gần bạn</h3>
-                      <MapPin className="w-5 h-5 text-blue-600" />
+                  {/* Fallback mobile app links */}
+                  <div className="flex gap-3">
+                    <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-3 text-xs text-center min-w-[120px]">
+                      <FaApple className="w-6 h-6 mx-auto mb-1" />
+                      <div className="text-blue-200">Sắp có trên</div>
+                      <div className="font-semibold">App Store</div>
+                    </div>
+                    <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-3 text-xs text-center min-w-[120px]">
+                      <SiGoogleplay className="w-6 h-6 mx-auto mb-1" />
+                      <div className="text-blue-200">Sắp có trên</div>
+                      <div className="font-semibold">Google Play</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Online/Offline Status */}
+              <div className="mt-6 flex items-center text-sm">
+                <div className={`w-3 h-3 rounded-full mr-2 ${isOnline ? 'bg-green-400' : 'bg-red-400'}`}></div>
+                <span className="text-blue-100">
+                  {isOnline ? 'Đang trực tuyến' : 'Đang ngoại tuyến'} 
+                  {!isOnline && ' - Tính năng offline vẫn hoạt động'}
+                </span>
+              </div>
+            </div>
+            
+            {/* Right side - Enhanced visual */}
+            <div className="relative">
+              <div className="relative z-10 mx-auto max-w-sm">
+                {/* Phone mockup */}
+                <div className="bg-gray-900 rounded-[2.5rem] p-2 shadow-2xl">
+                  <div className="bg-white rounded-[2rem] overflow-hidden">
+                    {/* Phone header */}
+                    <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-4 text-white">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          {/* Beautiful compass icon */}
+                          <div className="w-8 h-8">
+                            <svg viewBox="0 0 32 32" className="w-full h-full text-yellow-300">
+                              <circle cx="16" cy="16" r="12" fill="none" stroke="currentColor" strokeWidth="1.5"/>
+                              <path d="M 16 8 L 14 14 L 16 12 L 18 14 Z" fill="currentColor"/>
+                              <path d="M 24 16 L 18 14 L 20 16 L 18 18 Z" fill="currentColor"/>
+                              <path d="M 16 24 L 18 18 L 16 20 L 14 18 Z" fill="currentColor"/>
+                              <path d="M 8 16 L 14 18 L 12 16 L 14 14 Z" fill="currentColor"/>
+                              <circle cx="16" cy="16" r="2" fill="#ff4757"/>
+                            </svg>
+                          </div>
+                          <span className="font-bold">TravelSense</span>
+                        </div>
+                        <div className="flex space-x-1">
+                          <div className="w-2 h-2 bg-white/60 rounded-full"></div>
+                          <div className="w-2 h-2 bg-white/60 rounded-full"></div>
+                          <div className="w-2 h-2 bg-white rounded-full"></div>
+                        </div>
+                      </div>
                     </div>
                     
-                    {featuredPlaces.slice(0, 3).map((place, index) => (
-                      <div key={index} className="flex items-center space-x-3 p-2 bg-gray-50 rounded-lg">
-                        <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                          {getCategoryIcon(place.type)}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium text-sm text-gray-800 truncate">{place.name}</div>
-                          <div className="flex items-center text-xs text-gray-500">
-                            <Star className="w-3 h-3 text-yellow-400 mr-1" />
-                            {place.rating}
+                    {/* Phone content */}
+                    <div className="p-4 space-y-3">
+                      <div className="flex justify-between items-center">
+                        <h3 className="font-bold text-gray-800">Địa điểm gần bạn</h3>
+                        <MapPin className="w-5 h-5 text-blue-600" />
+                      </div>
+                      
+                      {featuredPlaces.slice(0, 3).map((place, index) => (
+                        <div key={index} className="flex items-center space-x-3 p-2 bg-gray-50 rounded-lg">
+                          <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                            {getCategoryIcon(place.type)}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-sm text-gray-800 truncate">{place.name}</div>
+                            <div className="flex items-center text-xs text-gray-500">
+                              <Star className="w-3 h-3 text-yellow-400 mr-1" />
+                              {place.rating}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
-                    
-                    <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-3 rounded-lg border border-blue-100">
-                      <div className="flex items-center text-sm text-blue-700">
-                        <CheckCircle className="w-4 h-4 mr-2" />
-                        <span>Hoạt động ngay cả khi offline</span>
+                      ))}
+                      
+                      <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-3 rounded-lg border border-blue-100">
+                        <div className="flex items-center text-sm text-blue-700">
+                          <CheckCircle className="w-4 h-4 mr-2" />
+                          <span>Hoạt động ngay cả khi offline</span>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-            
-            {/* Floating elements */}
-            <div className="absolute -top-4 -left-4 bg-white/20 backdrop-blur-sm rounded-full p-3 animate-float">
-              <Zap className="w-6 h-6 text-yellow-300" />
-            </div>
-            <div className="absolute -bottom-4 -right-4 bg-white/20 backdrop-blur-sm rounded-full p-3 animate-float-delay">
-              <Wifi className="w-6 h-6 text-green-300" />
+              
+              {/* Floating elements */}
+              <div className="absolute -top-4 -left-4 bg-white/20 backdrop-blur-sm rounded-full p-3 animate-float">
+                <Zap className="w-6 h-6 text-yellow-300" />
+              </div>
+              <div className="absolute -bottom-4 -right-4 bg-white/20 backdrop-blur-sm rounded-full p-3 animate-float-delay">
+                <Wifi className="w-6 h-6 text-green-300" />
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
+
+      {/* iOS PWA Helper Modal */}
+      {showIOSHelper && (
+        <iOSPWAHelper onClose={() => setShowIOSHelper(false)} />
+      )}
+    </>
   );
 };
 

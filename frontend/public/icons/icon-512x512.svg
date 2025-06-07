@@ -1,35 +1,11 @@
 <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="maskableBg512" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
-      <stop offset="50%" style="stop-color:#764ba2;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#f093fb;stop-opacity:1" />
-    </linearGradient>
-    
-    <linearGradient id="maskableCompass512" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#ffd700;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#ff8c00;stop-opacity:1" />
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1d4ed8;stop-opacity:1" />
     </linearGradient>
   </defs>
-  
-  <!-- Safe area background -->
-  <rect width="512" height="512" fill="url(#maskableBg512)"/>
-  
-  <!-- Content in safe area -->
-  <g transform="translate(51.2, 51.2) scale(0.8)">
-    <!-- Simplified compass rose -->
-    <circle cx="256" cy="256" r="60" fill="none" stroke="url(#maskableCompass512)" stroke-width="4"/>
-    
-    <!-- Main star points -->
-    <g fill="url(#maskableCompass512)">
-      <path d="M 256 206 L 250 236 L 256 231 L 262 236 Z"/>
-      <path d="M 306 256 L 276 250 L 281 256 L 276 262 Z"/>
-      <path d="M 256 306 L 262 276 L 256 281 L 250 276 Z"/>
-      <path d="M 206 256 L 236 262 L 231 256 L 236 250 Z"/>
-    </g>
-    
-    <!-- Center -->
-    <circle cx="256" cy="256" r="6" fill="white"/>
-    <circle cx="256" cy="256" r="3" fill="#ff4757"/>
-  </g>
+  <rect width="512" height="512" rx="102.4" fill="url(#grad)"/>
+  <path d="M128 153.6 L384 153.6 L307.2 358.4 L204.8 358.4 Z" fill="white"/>
+  <circle cx="256" cy="204.8" r="40.96" fill="white"/>
 </svg>
