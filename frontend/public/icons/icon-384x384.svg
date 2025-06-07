@@ -1,13 +1,35 @@
-
-    <svg width="384" height="384" viewBox="0 0 384 384" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
-          <stop offset="100%" style="stop-color:#1d4ed8;stop-opacity:1" />
-        </linearGradient>
-      </defs>
-      <rect width="384" height="384" rx="76.80000000000001" fill="url(#grad)"/>
-      <path d="M96 115.19999999999999 L288 115.19999999999999 L230.39999999999998 268.79999999999995 L153.60000000000002 268.79999999999995 Z" fill="white"/>
-      <circle cx="192" cy="153.60000000000002" r="30.72" fill="white"/>
-    </svg>
+<svg width="384" height="384" viewBox="0 0 384 384" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="maskableBg384" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#764ba2;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f093fb;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="maskableCompass384" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffd700;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ff8c00;stop-opacity:1" />
+    </linearGradient>
+  </defs>
   
+  <!-- Safe area background -->
+  <rect width="384" height="384" fill="url(#maskableBg384)"/>
+  
+  <!-- Content in safe area -->
+  <g transform="translate(38.400000000000006, 38.400000000000006) scale(0.8)">
+    <!-- Simplified compass rose -->
+    <circle cx="192" cy="192" r="45" fill="none" stroke="url(#maskableCompass384)" stroke-width="3"/>
+    
+    <!-- Main star points -->
+    <g fill="url(#maskableCompass384)">
+      <path d="M 192 154.5 L 187.5 177 L 192 173.25 L 196.5 177 Z"/>
+      <path d="M 229.5 192 L 207 187.5 L 210.75 192 L 207 196.5 Z"/>
+      <path d="M 192 229.5 L 196.5 207 L 192 210.75 L 187.5 207 Z"/>
+      <path d="M 154.5 192 L 177 196.5 L 173.25 192 L 177 187.5 Z"/>
+    </g>
+    
+    <!-- Center -->
+    <circle cx="192" cy="192" r="4.5" fill="white"/>
+    <circle cx="192" cy="192" r="2.25" fill="#ff4757"/>
+  </g>
+</svg>

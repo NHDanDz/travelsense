@@ -63,10 +63,10 @@ export const Navbar = () => {
     <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
       scrolled ? 'bg-white shadow-md py-3' : 'bg-white shadow-sm py-3'
     }`}>
-      <div className="container mx-auto px-6 flex items-center justify-between">
+      <div className="container mx-auto px-4 md:px-6 flex items-center justify-between">
         <Link href="/" className="flex items-center">
-          <Compass className={`h-6 w-6 mr-2 text-blue-600`} />
-          <span className={`text-xl font-bold text-blue-600`}>
+          <Compass className={`h-5 w-5 md:h-6 md:w-6 mr-1.5 md:mr-2 text-blue-600`} />
+          <span className={`text-lg md:text-xl font-bold text-blue-600`}>
             TravelSense
           </span>
         </Link>
@@ -116,7 +116,8 @@ export const Navbar = () => {
           </Link>
         </nav>
         
-        <div className="flex items-center space-x-4">
+        {/* Desktop User Section */}
+        <div className="hidden md:flex items-center space-x-4">
           {user ? (
             <>
               <Link 
@@ -150,12 +151,49 @@ export const Navbar = () => {
           )}
         </div>
 
-        <button 
-          className="md:hidden text-gray-600 focus:outline-none"
-          onClick={() => setShowMobileMenu(!showMobileMenu)}
-        >
-          {showMobileMenu ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-        </button>
+        {/* Mobile User Section and Menu Button */}
+        <div className="md:hidden flex items-center space-x-3">
+          {user ? (
+            <div className="flex items-center space-x-2">
+              <Link 
+                href="/account" 
+                className="flex items-center space-x-1 text-sm font-medium text-gray-700 hover:text-blue-500 transition-colors"
+              >
+                <User className="h-4 w-4" />
+                <span className="truncate max-w-[60px]">{user.username}</span>
+              </Link>
+              <button
+                onClick={handleLogout}
+                className="text-red-600 hover:text-red-700 transition-colors p-1"
+                title="Đăng xuất"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center space-x-1.5">
+              <Link 
+                href="/auth" 
+                className="text-xs font-medium text-gray-700 hover:text-blue-500 transition-colors px-2 py-1"
+              >
+                Đăng nhập
+              </Link>
+              <Link 
+                href="/auth" 
+                className="bg-blue-600 text-white text-xs font-medium py-1 px-2 rounded hover:bg-blue-700 transition-colors"
+              >
+                Đăng ký
+              </Link>
+            </div>
+          )}
+          
+          <button 
+            className="text-gray-600 focus:outline-none ml-2"
+            onClick={() => setShowMobileMenu(!showMobileMenu)}
+          >
+            {showMobileMenu ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+        </div>
       </div>
       
       {showMobileMenu && (
@@ -173,6 +211,20 @@ export const Navbar = () => {
             onClick={() => setShowMobileMenu(false)}
           >
             Bản đồ
+          </Link>
+          <Link 
+            href="/cities" 
+            className="block py-2 text-gray-600 hover:text-gray-900"
+            onClick={() => setShowMobileMenu(false)}
+          >
+            Thành phố
+          </Link>
+          <Link 
+            href="/chat" 
+            className="block py-2 text-gray-600 hover:text-gray-900"
+            onClick={() => setShowMobileMenu(false)}
+          >
+            TravelBot
           </Link>
           <Link 
             href="/trip-planner" 
@@ -195,44 +247,6 @@ export const Navbar = () => {
           >
             Liên hệ
           </Link>
-          {user ? (
-            <>
-              <Link
-                href="/account"
-                className="flex items-center gap-2 py-2 text-gray-600 hover:text-gray-900"
-                onClick={() => setShowMobileMenu(false)}
-              >
-                <User className="h-5 w-5" />
-                <span>Tài khoản ({user.username})</span>
-              </Link>
-              <button
-                onClick={handleLogout}
-                className="flex items-center gap-2 py-2 text-red-600 hover:text-red-700 w-full"
-              >
-                <LogOut className="h-5 w-5" />
-                <span>Đăng xuất</span>
-              </button>
-            </>
-          ) : (
-            <>
-              <Link
-                href="/auth"
-                className="flex items-center gap-2 py-2 text-gray-600 hover:text-gray-900"
-                onClick={() => setShowMobileMenu(false)}
-              >
-                <User className="h-5 w-5" />
-                <span>Đăng nhập</span>
-              </Link>
-              <Link
-                href="/auth"
-                className="flex items-center gap-2 py-2 text-blue-600 hover:text-blue-700"
-                onClick={() => setShowMobileMenu(false)}
-              >
-                <User className="h-5 w-5" />
-                <span>Đăng ký</span>
-              </Link>
-            </>
-          )}
         </div>
       )}
     </header>
@@ -392,43 +406,43 @@ export const MobileNavigation = () => {
   };
 
   return (
-<div className="md:hidden fixed bottom-0 inset-x-0 bg-white border-t border-gray-200 z-30 shadow-lg">
-  <div className="grid grid-cols-4 h-20"> {/* Tăng từ h-14 lên h-20 */}
-    <Link
-      href="/"
-      className="flex flex-col items-center justify-center text-gray-500 hover:text-blue-600 transition-colors active:scale-95"
-    >
-      <Compass className="h-6 w-6" /> {/* Tăng kích thước icon từ h-5 w-5 lên h-6 w-6 */}
-    </Link>
-    <Link
-      href="/dashboard/Map"
-      className="flex flex-col items-center justify-center text-gray-500 hover:text-blue-600 transition-colors active:scale-95"
-    >
-      <MapPin className="h-6 w-6" />
-    </Link>
-    <Link
-      href="/trip-planner"
-      className="flex flex-col items-center justify-center text-gray-500 hover:text-blue-600 transition-colors active:scale-95"
-    >
-      <Calendar className="h-6 w-6" />
-    </Link> 
-    {user ? (
-      <Link
-        href="/account"
-        className="flex flex-col items-center justify-center text-gray-500 hover:text-blue-600 transition-colors active:scale-95"
-      >
-        <User className="h-6 w-6" />
-      </Link>
-    ) : (
-      <Link
-        href="/auth"
-        className="flex flex-col items-center justify-center text-gray-500 hover:text-blue-600 transition-colors active:scale-95"
-      >
-        <User className="h-6 w-6" />
-      </Link>
-    )}
-  </div>
-</div>
+    <div className="md:hidden fixed bottom-0 inset-x-0 bg-white border-t border-gray-200 z-30 shadow-lg">
+      <div className="grid grid-cols-4 h-20">
+        <Link
+          href="/"
+          className="flex flex-col items-center justify-center text-gray-500 hover:text-blue-600 transition-colors active:scale-95"
+        >
+          <Compass className="h-6 w-6" />
+        </Link>
+        <Link
+          href="/dashboard/Map"
+          className="flex flex-col items-center justify-center text-gray-500 hover:text-blue-600 transition-colors active:scale-95"
+        >
+          <MapPin className="h-6 w-6" />
+        </Link>
+        <Link
+          href="/trip-planner"
+          className="flex flex-col items-center justify-center text-gray-500 hover:text-blue-600 transition-colors active:scale-95"
+        >
+          <Calendar className="h-6 w-6" />
+        </Link> 
+        {user ? (
+          <Link
+            href="/account"
+            className="flex flex-col items-center justify-center text-gray-500 hover:text-blue-600 transition-colors active:scale-95"
+          >
+            <User className="h-6 w-6" />
+          </Link>
+        ) : (
+          <Link
+            href="/auth"
+            className="flex flex-col items-center justify-center text-gray-500 hover:text-blue-600 transition-colors active:scale-95"
+          >
+            <User className="h-6 w-6" />
+          </Link>
+        )}
+      </div>
+    </div>
   );
 };
 

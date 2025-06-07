@@ -1,13 +1,43 @@
-
-    <svg width="180" height="180" viewBox="0 0 180 180" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
-          <stop offset="100%" style="stop-color:#1d4ed8;stop-opacity:1" />
-        </linearGradient>
-      </defs>
-      <rect width="180" height="180" rx="36" fill="url(#grad)"/>
-      <path d="M45 54 L135 54 L108 125.99999999999999 L72 125.99999999999999 Z" fill="white"/>
-      <circle cx="90" cy="72" r="14.4" fill="white"/>
-    </svg>
+<svg width="180" height="180" viewBox="0 0 180 180" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="appleBg180" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f093fb;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="appleCompass180" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffd700;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ff8c00;stop-opacity:1" />
+    </linearGradient>
+    
+    <filter id="appleShadow180">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000" flood-opacity="0.25"/>
+    </filter>
+  </defs>
   
+  <!-- iOS rounded rectangle -->
+  <rect width="180" height="180" rx="36" fill="url(#appleBg180)" filter="url(#appleShadow180)"/>
+  
+  <!-- Content -->
+  <g transform="translate(27, 27) scale(0.7)">
+    <!-- Compass ring -->
+    <circle cx="90" cy="90" r="50" fill="none" stroke="url(#appleCompass180)" stroke-width="3"/>
+    
+    <!-- Compass star -->
+    <g fill="url(#appleCompass180)">
+      <path d="M 90 50 L 85 75 L 90 70 L 95 75 Z"/>
+      <path d="M 130 90 L 105 85 L 110 90 L 105 95 Z"/>
+      <path d="M 90 130 L 95 105 L 90 110 L 85 105 Z"/>
+      <path d="M 50 90 L 75 95 L 70 90 L 75 85 Z"/>
+    </g>
+    
+    <!-- Center dot -->
+    <circle cx="90" cy="90" r="8" fill="white"/>
+    <circle cx="90" cy="90" r="5" fill="#ff4757"/>
+    
+    <!-- Direction letters -->
+    <g fill="white" font-family="Arial, sans-serif" font-weight="bold" text-anchor="middle" font-size="12">
+      <text x="90" y="30">N</text>
+    </g>
+  </g>
+</svg>

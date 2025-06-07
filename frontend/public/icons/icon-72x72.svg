@@ -1,13 +1,114 @@
-
-    <svg width="72" height="72" viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
-          <stop offset="100%" style="stop-color:#1d4ed8;stop-opacity:1" />
-        </linearGradient>
-      </defs>
-      <rect width="72" height="72" rx="14.4" fill="url(#grad)"/>
-      <path d="M18 21.599999999999998 L54 21.599999999999998 L43.199999999999996 50.4 L28.8 50.4 Z" fill="white"/>
-      <circle cx="36" cy="28.8" r="5.76" fill="white"/>
-    </svg>
+<svg width="72" height="72" viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Background gradient -->
+    <linearGradient id="bgGradient72" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="30%" style="stop-color:#764ba2;stop-opacity:1" />
+      <stop offset="70%" style="stop-color:#f093fb;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f5576c;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Compass ring gradient -->
+    <linearGradient id="ringGradient72" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffd700;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#ff8c00;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ff6347;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Compass needle gradient -->
+    <linearGradient id="needleNorth72" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ff4757;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#c44569;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="needleSouth72" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2f3542;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#57606f;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Star gradient -->
+    <linearGradient id="starGradient72" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffeaa7;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#fdcb6e;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Shadow filters -->
+    <filter id="shadow72" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="0.5625" stdDeviation="0.84375" flood-color="#000" flood-opacity="0.25"/>
+    </filter>
+    
+    <filter id="innerShadow72" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="0.28125" stdDeviation="0.421875" flood-color="#000" flood-opacity="0.15"/>
+    </filter>
+    
+    <!-- Glow effect -->
+    <filter id="glow72" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="0.421875" result="coloredBlur"/>
+      <feMerge> 
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
   
+  <!-- Background circle with gradient -->
+  <circle cx="36" cy="36" r="33.839999999999996" fill="url(#bgGradient72)" filter="url(#shadow72)"/>
+  
+  <!-- Outer decorative ring -->
+  <circle cx="36" cy="36" r="31.1328" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="0.28125"/>
+  
+  <!-- Compass ring -->
+  <circle cx="36" cy="36" r="11.953125" fill="none" stroke="url(#ringGradient72)" stroke-width="0.84375" filter="url(#innerShadow72)"/>
+  <circle cx="36" cy="36" r="11.953125" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="0.140625"/>
+  
+  <!-- Main compass rose (8-pointed star) -->
+  <g filter="url(#glow72)">
+    <!-- Long points (N, E, S, W) -->
+    <g fill="url(#starGradient72)" stroke="rgba(255,255,255,0.4)" stroke-width="0.140625">
+      <!-- North point -->
+      <path d="M 36 26.15625 L 34.875 32.484375 L 36 31.078125 L 37.125 32.484375 Z"/>
+      <!-- East point -->
+      <path d="M 45.84375 36 L 39.515625 34.875 L 40.921875 36 L 39.515625 37.125 Z"/>
+      <!-- South point -->
+      <path d="M 36 45.84375 L 37.125 39.515625 L 36 40.921875 L 34.875 39.515625 Z"/>
+      <!-- West point -->
+      <path d="M 26.15625 36 L 32.484375 37.125 L 31.078125 36 L 32.484375 34.875 Z"/>
+    </g>
+    
+    <!-- Short points (NE, SE, SW, NW) -->
+    <g fill="rgba(255,255,255,0.8)" stroke="rgba(255,255,255,0.6)" stroke-width="0.0703125">
+      <!-- Northeast -->
+      <path d="M 43.03125 28.96875 L 38.8125 33.890625 L 39.515625 32.484375 L 38.109375 33.1875 Z"/>
+      <!-- Southeast -->
+      <path d="M 43.03125 43.03125 L 38.109375 38.8125 L 39.515625 39.515625 L 38.8125 38.109375 Z"/>
+      <!-- Southwest -->
+      <path d="M 28.96875 43.03125 L 33.1875 38.109375 L 32.484375 39.515625 L 33.890625 38.8125 Z"/>
+      <!-- Northwest -->
+      <path d="M 28.96875 28.96875 L 33.890625 33.1875 L 32.484375 32.484375 L 33.1875 33.890625 Z"/>
+    </g>
+  </g>
+  
+  <!-- Compass needle -->
+  <g filter="url(#innerShadow72)">
+    <!-- North needle (red) -->
+    <path d="M 36 29.671875 L 35.4375 36.703125 L 36 36 L 36.5625 36.703125 Z" 
+          fill="url(#needleNorth72)" stroke="rgba(255,255,255,0.3)" stroke-width="0.0703125"/>
+    
+    <!-- South needle (dark) -->
+    <path d="M 36 42.328125 L 36.5625 35.296875 L 36 36 L 35.4375 35.296875 Z" 
+          fill="url(#needleSouth72)" stroke="rgba(255,255,255,0.2)" stroke-width="0.0703125"/>
+  </g>
+  
+  <!-- Center pivot -->
+  <circle cx="36" cy="36" r="1.125" fill="url(#ringGradient72)" stroke="rgba(255,255,255,0.5)" stroke-width="0.140625" filter="url(#innerShadow72)"/>
+  <circle cx="36" cy="36" r="0.5625" fill="rgba(255,255,255,0.9)"/>
+  
+  <!-- Cardinal direction markers (for larger sizes) -->
+  
+  
+  <!-- Decorative dots around the compass -->
+  
+  
+  <!-- Brand indicator (for larger sizes) -->
+  
+</svg>

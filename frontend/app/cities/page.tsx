@@ -189,12 +189,7 @@ const CitiesPage = () => {
                       <div className="flex items-center">
                         <MapPin className="h-4 w-4 mr-1" />
                         <span>{city._count.places} địa điểm</span>
-                      </div>
-                      {city.latitude && city.longitude && (
-                        <div className="text-xs">
-                          {Number(city.latitude).toFixed(2)}, {Number(city.longitude).toFixed(2)}
-                        </div>
-                      )}
+                      </div> 
                     </div>
                   </div>
                 </Link>
@@ -229,12 +224,7 @@ const CitiesPage = () => {
                         <div className="flex items-center">
                           <MapPin className="h-4 w-4 mr-1" />
                           <span>{city._count.places} địa điểm</span>
-                        </div>
-                        {city.latitude && city.longitude && (
-                          <div className="text-xs mt-1">
-                            {Number(city.latitude).toFixed(2)}, {Number(city.longitude).toFixed(2)}
-                          </div>
-                        )}
+                        </div> 
                       </div>
                     </div>
                   </div>

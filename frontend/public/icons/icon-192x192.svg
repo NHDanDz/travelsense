@@ -1,13 +1,35 @@
-
-    <svg width="192" height="192" viewBox="0 0 192 192" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
-          <stop offset="100%" style="stop-color:#1d4ed8;stop-opacity:1" />
-        </linearGradient>
-      </defs>
-      <rect width="192" height="192" rx="38.400000000000006" fill="url(#grad)"/>
-      <path d="M48 57.599999999999994 L144 57.599999999999994 L115.19999999999999 134.39999999999998 L76.80000000000001 134.39999999999998 Z" fill="white"/>
-      <circle cx="96" cy="76.80000000000001" r="15.36" fill="white"/>
-    </svg>
+<svg width="192" height="192" viewBox="0 0 192 192" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="maskableBg192" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#764ba2;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f093fb;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="maskableCompass192" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffd700;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ff8c00;stop-opacity:1" />
+    </linearGradient>
+  </defs>
   
+  <!-- Safe area background -->
+  <rect width="192" height="192" fill="url(#maskableBg192)"/>
+  
+  <!-- Content in safe area -->
+  <g transform="translate(19.200000000000003, 19.200000000000003) scale(0.8)">
+    <!-- Simplified compass rose -->
+    <circle cx="96" cy="96" r="22.5" fill="none" stroke="url(#maskableCompass192)" stroke-width="1.5"/>
+    
+    <!-- Main star points -->
+    <g fill="url(#maskableCompass192)">
+      <path d="M 96 77.25 L 93.75 88.5 L 96 86.625 L 98.25 88.5 Z"/>
+      <path d="M 114.75 96 L 103.5 93.75 L 105.375 96 L 103.5 98.25 Z"/>
+      <path d="M 96 114.75 L 98.25 103.5 L 96 105.375 L 93.75 103.5 Z"/>
+      <path d="M 77.25 96 L 88.5 98.25 L 86.625 96 L 88.5 93.75 Z"/>
+    </g>
+    
+    <!-- Center -->
+    <circle cx="96" cy="96" r="2.25" fill="white"/>
+    <circle cx="96" cy="96" r="1.125" fill="#ff4757"/>
+  </g>
+</svg>

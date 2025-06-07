@@ -6,12 +6,17 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter, useParams } from 'next/navigation';
 import { 
-  MapPin, ChevronLeft, Square, Eye, EyeOff, Maximize2, Minimize2, Activity,  Share,   Map
+  MapPin, ChevronLeft, Square, Eye, EyeOff, Maximize2, Minimize2, Activity, Share, Map,
+  Menu, X, Calendar, ChevronUp, ChevronDown
 } from 'lucide-react';
 import TripMapComponent from './components/TripMapComponent';
 import TripTimelinePanel from './components/TripTimelinePanel';
 import TripMapControls from './components/TripMapControls';
 import { useMapUrlParams } from './hooks/useMapUrlParams';
+
+import MobileBottomSheet from './components/MobileBottomSheet';
+import MobileMapControls from './components/MobileMapControls';
+import MobileDayNavigation from './components/MobileDayNavigation';
 
 // Types
 interface Place {
@@ -154,7 +159,20 @@ export default function TripMapPage() {
     fullScreen: false
   });
 
+    // Mobile-specific state
+  const [isMobile, setIsMobile] = useState(false);
+  const [mobileBottomSheetOpen, setMobileBottomSheetOpen] = useState(false);
+  const [mobileControlsOpen, setMobileControlsOpen] = useState(false);
   // Load trip data
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
   useEffect(() => {
     const loadTripData = async () => {
       try {
@@ -315,6 +333,141 @@ export default function TripMapPage() {
             <span>Quay lại lịch trình</span>
           </Link>
         </div>
+      </div>
+    );
+  }
+
+    // Mobile Layout
+  if (isMobile) {
+    return (
+      <div className="h-screen bg-gray-900 flex flex-col relative overflow-hidden">
+        {/* Mobile Header */}
+        <header className="bg-white shadow-sm relative z-10 flex-shrink-0">
+          <div className="px-4 py-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3 min-w-0 flex-1">
+                <Link 
+                  href={`/trip-planner/${tripId}`} 
+                  className="p-1 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0"
+                >
+                  <ChevronLeft className="w-6 h-6 text-gray-600" />
+                </Link>
+                <div className="min-w-0 flex-1">
+                  <h1 className="font-bold text-gray-900 text-lg truncate">{trip.name}</h1>
+                  <div className="flex items-center space-x-2 text-sm text-gray-600">
+                    <MapPin className="w-4 h-4 flex-shrink-0" />
+                    <span className="truncate">{trip.destination}</span>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2 flex-shrink-0">
+                <button
+                  onClick={handleShare}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <Share className="w-5 h-5 text-gray-600" />
+                </button>
+                <button
+                  onClick={() => setMobileControlsOpen(!mobileControlsOpen)}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <Menu className="w-5 h-5 text-gray-600" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Map Container */}
+        <div className="flex-1 relative">
+          <TripMapComponent
+            trip={trip}
+            mapViewState={mapViewState}
+            onMapViewStateChange={updateMapViewState}
+            highlightedPlace={highlightedPlace}
+            onPlaceHighlight={setHighlightedPlace}
+            initialCenter={urlParams.lat && urlParams.lng ? [urlParams.lng, urlParams.lat] : undefined}
+            initialZoom={urlParams.zoom}
+          />
+
+          {/* Mobile Day Navigation */}
+          <MobileDayNavigation
+            trip={trip}
+            activeDay={mapViewState.activeDay}
+            onDayChange={handleDayChange}
+          />
+
+          {/* Mobile Map Controls */}
+          <MobileMapControls
+            mapViewState={mapViewState}
+            onMapViewStateChange={updateMapViewState}
+            onRouteSimulation={handleRouteSimulation}
+            trip={trip}
+            isOpen={mobileControlsOpen}
+            onToggle={() => setMobileControlsOpen(!mobileControlsOpen)}
+          />
+
+          {/* Quick Stats Card */}
+          <div className="absolute bottom-20 left-4 right-4 z-20">
+            <div className="bg-white/95 backdrop-blur-sm rounded-xl p-4 shadow-lg">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-semibold text-gray-900">Ngày {mapViewState.activeDay}</h4>
+                  <p className="text-sm text-gray-600">
+                    {new Date(trip.days.find(day => day.dayNumber === mapViewState.activeDay)?.date || '').toLocaleDateString('vi-VN', { 
+                      weekday: 'short', 
+                      day: 'numeric', 
+                      month: 'short' 
+                    })}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <div className="text-2xl font-bold text-blue-600">
+                    {trip.days.find(day => day.dayNumber === mapViewState.activeDay)?.places.length || 0}
+                  </div>
+                  <div className="text-sm text-gray-600">địa điểm</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Sheet Toggle Button */}
+          <button
+            onClick={() => setMobileBottomSheetOpen(!mobileBottomSheetOpen)}
+            className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20 bg-blue-600 text-white px-6 py-3 rounded-full shadow-lg flex items-center space-x-2 font-medium"
+          >
+            <Calendar className="w-5 h-5" />
+            <span>Xem lịch trình</span>
+            <ChevronUp className={`w-4 h-4 transition-transform ${mobileBottomSheetOpen ? 'rotate-180' : ''}`} />
+          </button>
+        </div>
+
+        {/* Mobile Bottom Sheet */}
+        <MobileBottomSheet
+          trip={trip}
+          activeDay={mapViewState.activeDay}
+          onDayChange={handleDayChange}
+          isOpen={mobileBottomSheetOpen}
+          onToggle={() => setMobileBottomSheetOpen(!mobileBottomSheetOpen)}
+          onPlaceSelect={(place) => {
+            setHighlightedPlace(place.id);
+            setMobileBottomSheetOpen(false);
+          }}
+        />
+
+        {/* Route Simulation Status */}
+        {mapViewState.followRoute && (
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 bg-blue-600 text-white px-6 py-3 rounded-full shadow-lg flex items-center space-x-3">
+            <div className="w-2 h-2 bg-blue-300 rounded-full animate-pulse" />
+            <span className="font-medium">Đang mô phỏng tuyến</span>
+            <button
+              onClick={() => updateMapViewState({ followRoute: false })}
+              className="p-1 hover:bg-blue-700 rounded transition-colors"
+            >
+              <Square className="w-4 h-4" />
+            </button>
+          </div>
+        )}
       </div>
     );
   }

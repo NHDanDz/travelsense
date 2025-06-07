@@ -1,0 +1,43 @@
+<svg width="152" height="152" viewBox="0 0 152 152" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="appleBg152" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f093fb;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="appleCompass152" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffd700;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ff8c00;stop-opacity:1" />
+    </linearGradient>
+    
+    <filter id="appleShadow152">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+  
+  <!-- iOS rounded rectangle -->
+  <rect width="152" height="152" rx="30.400000000000002" fill="url(#appleBg152)" filter="url(#appleShadow152)"/>
+  
+  <!-- Content -->
+  <g transform="translate(22.8, 22.8) scale(0.7)">
+    <!-- Compass ring -->
+    <circle cx="76" cy="76" r="42.22222222222222" fill="none" stroke="url(#appleCompass152)" stroke-width="2.533333333333333"/>
+    
+    <!-- Compass star -->
+    <g fill="url(#appleCompass152)">
+      <path d="M 76 42.22222222222222 L 71.77777777777777 63.333333333333336 L 76 59.111111111111114 L 80.22222222222223 63.333333333333336 Z"/>
+      <path d="M 109.77777777777777 76 L 88.66666666666667 71.77777777777777 L 92.88888888888889 76 L 88.66666666666667 80.22222222222223 Z"/>
+      <path d="M 76 109.77777777777777 L 80.22222222222223 88.66666666666667 L 76 92.88888888888889 L 71.77777777777777 88.66666666666667 Z"/>
+      <path d="M 42.22222222222222 76 L 63.333333333333336 80.22222222222223 L 59.111111111111114 76 L 63.333333333333336 71.77777777777777 Z"/>
+    </g>
+    
+    <!-- Center dot -->
+    <circle cx="76" cy="76" r="6.7555555555555555" fill="white"/>
+    <circle cx="76" cy="76" r="4.222222222222222" fill="#ff4757"/>
+    
+    <!-- Direction letters -->
+    <g fill="white" font-family="Arial, sans-serif" font-weight="bold" text-anchor="middle" font-size="10.133333333333333">
+      <text x="76" y="25.333333333333336">N</text>
+    </g>
+  </g>
+</svg>

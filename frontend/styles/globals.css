@@ -604,3 +604,185 @@
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
 }
+
+/* globals.css - Add mobile responsive styles */
+
+/* Hide scrollbars on mobile for smooth UX */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Mobile-specific utilities */
+.line-clamp-1 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+
+.line-clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+/* Touch-friendly tap targets */
+@media (max-width: 768px) {
+  button, 
+  [role="button"],
+  input[type="button"],
+  input[type="submit"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Improve touch scrolling */
+  .overflow-scroll,
+  .overflow-y-auto,
+  .overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Map controls adjustments */
+  .mapboxgl-ctrl-group {
+    margin: 8px !important;
+  }
+  
+  .mapboxgl-ctrl-group button {
+    width: 40px !important;
+    height: 40px !important;
+  }
+  
+  /* Popup adjustments for mobile */
+  .mapboxgl-popup {
+    max-width: calc(100vw - 40px) !important;
+  }
+  
+  .mapboxgl-popup-content {
+    padding: 12px !important;
+    border-radius: 12px !important;
+  }
+}
+
+/* Enhanced mobile popup styles */
+@media (max-width: 640px) {
+  .mapboxgl-popup-content {
+    max-width: 280px !important;
+    max-height: 70vh !important;
+    overflow-y: auto !important;
+  }
+  
+  /* Ensure readable text on mobile */
+  .mapboxgl-popup h3 {
+    font-size: 16px !important;
+    line-height: 1.4 !important;
+  }
+  
+  .mapboxgl-popup p {
+    font-size: 14px !important;
+    line-height: 1.4 !important;
+  }
+}
+
+/* Animation optimizations for mobile */
+@media (prefers-reduced-motion: reduce) {
+  .transition-all,
+  .transition-transform,
+  .transition-colors {
+    transition: none !important;
+  }
+  
+  .animate-spin,
+  .animate-pulse,
+  .animate-bounce {
+    animation: none !important;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .mobile-bottom-sheet {
+    background-color: #1f2937;
+    border-color: #374151;
+  }
+  
+  .mobile-bottom-sheet h3,
+  .mobile-bottom-sheet h4 {
+    color: #f9fafb;
+  }
+  
+  .mobile-bottom-sheet p {
+    color: #d1d5db;
+  }
+}
+
+/* Safe area adjustments for mobile devices */
+@supports (padding: max(0px)) {
+  .mobile-header {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+    padding-top: max(0.75rem, env(safe-area-inset-top));
+  }
+  
+  .mobile-bottom-sheet {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+  
+  .mobile-fab {
+    bottom: max(1rem, calc(env(safe-area-inset-bottom) + 1rem));
+  }
+}
+
+/* Enhanced focus states for accessibility */
+button:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Loading states */
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Mobile landscape optimizations */
+@media (max-width: 768px) and (orientation: landscape) {
+  .mobile-header {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+  
+  .mobile-header h1 {
+    font-size: 1rem;
+  }
+  
+  .mobile-bottom-sheet {
+    max-height: 50vh;
+  }
+}
+
+/* High DPI screen optimizations */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .place-icon,
+  .map-marker {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+}

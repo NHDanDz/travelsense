@@ -9,10 +9,10 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import { 
   MapPin, Navigation, Clock, Star, Route, Play, 
   Pause, RotateCcw, Camera, ExternalLink, Phone,
-  Globe, Utensils, Coffee, Building, Landmark, ShoppingBag
+  Globe, Utensils, Coffee, Building, Landmark, ShoppingBag,
+  X, MoreHorizontal
 } from 'lucide-react';
 import Image from 'next/image';
-
 // Types
 interface Place {
   id: string;
@@ -102,6 +102,97 @@ const getDayColor = (dayNumber: number) => {
   return dayColors[(dayNumber - 1) % dayColors.length];
 };
 
+const MobileOptimizedPopup = ({ place, onClose }: { place: Place; onClose: () => void }) => {
+  const typeInfo = getPlaceTypeInfo(place);
+  
+  const handleDirections = () => {
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${place.latitude},${place.longitude}`;
+    window.open(url, '_blank');
+  };
+
+  return (
+    <div className="w-full max-w-sm bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+      {/* Header */}
+      <div className="relative">
+        {place.image && (
+          <div className="relative h-32 w-full">
+            <Image
+              src={place.image}
+              alt={place.name}
+              fill
+              className="object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+          </div>
+        )}
+        
+        <button 
+          onClick={onClose}
+          className="absolute top-3 right-3 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-md hover:bg-white transition-colors"
+        >
+          <X className="w-4 h-4 text-gray-600" />
+        </button>
+      </div>
+
+      {/* Content */}
+      <div className="p-4">
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex-1 min-w-0">
+            <h3 className="font-bold text-gray-900 text-lg mb-1 line-clamp-2">{place.name}</h3>
+            <p className="text-sm text-gray-600 mb-2 line-clamp-2">{place.address}</p>
+          </div>
+        </div>
+
+        {/* Metadata */}
+        <div className="flex items-center flex-wrap gap-3 mb-4 text-sm">
+          {place.rating && (
+            <div className="flex items-center space-x-1 px-2 py-1 bg-yellow-50 rounded-lg">
+              <Star className="w-4 h-4 text-yellow-500 fill-current" />
+              <span className="font-medium text-yellow-700">{place.rating.toFixed(1)}</span>
+            </div>
+          )}
+          
+          {place.startTime && (
+            <div className="flex items-center space-x-1 px-2 py-1 bg-blue-50 rounded-lg">
+              <Clock className="w-4 h-4 text-blue-500" />
+              <span className="text-blue-700 font-medium">{place.startTime}</span>
+              {place.endTime && <span className="text-blue-700"> - {place.endTime}</span>}
+            </div>
+          )}
+        </div>
+
+        {/* Duration Info */}
+        {place.duration && (
+          <div className="mb-4 p-3 bg-gray-50 rounded-xl">
+            <div className="flex items-center text-sm text-gray-700">
+              <Clock className="w-4 h-4 mr-2 text-gray-500" />
+              <span>Thời gian dự kiến: <strong>{Math.floor(place.duration / 60)}h {place.duration % 60}m</strong></span>
+            </div>
+          </div>
+        )}
+
+        {/* Actions */}
+        <div className="flex space-x-2">
+          <button 
+            onClick={handleDirections}
+            className="flex-1 flex items-center justify-center space-x-2 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-medium"
+          >
+            <Navigation className="w-5 h-5" />
+            <span>Chỉ đường</span>
+          </button>
+          
+          <button 
+            className="p-3 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+            title="Thêm tùy chọn"
+          >
+            <MoreHorizontal className="w-5 h-5 text-gray-600" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function TripMapComponent({
   trip,
   mapViewState,
@@ -112,6 +203,7 @@ export default function TripMapComponent({
   initialZoom
 }: TripMapComponentProps) {
   const mapRef = useRef<MapboxMap | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
   const [viewState, setViewState] = useState({
     longitude: initialCenter?.[0] || trip.city?.longitude || 105.8542,
     latitude: initialCenter?.[1] || trip.city?.latitude || 21.0285,
@@ -259,6 +351,15 @@ export default function TripMapComponent({
     }
   }, [mapViewState.activeDay, mapViewState.showAllDays, fitMapToPlaces]);
 
+    useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
   // Route animation effect
   useEffect(() => {
     if (!mapViewState.followRoute || routeData.length === 0) {
@@ -279,14 +380,16 @@ export default function TripMapComponent({
     setShowPopup(true);
     
     if (mapRef.current) {
+      // Different zoom levels for mobile vs desktop
+      const targetZoom = isMobile ? 17 : 16;
+      
       mapRef.current.flyTo({
         center: [parseFloat(place.longitude), parseFloat(place.latitude)],
-        zoom: 16,
+        zoom: targetZoom,
         duration: 1000
       });
     }
-  }, []);
-
+  }, [isMobile]);
   // Calculate animation opacity - FIXED: Ensure opacity stays between 0 and 1
   const getAnimatedOpacity = useCallback(() => {
     if (!mapViewState.followRoute) return 0.8;
@@ -299,8 +402,14 @@ export default function TripMapComponent({
 
   // Get all places for current view
   const displayPlaces = getCurrentDayPlaces();
+  const getMarkerSize = useCallback(() => {
+    return isMobile ? 'w-12 h-12' : 'w-10 h-10';
+  }, [isMobile]);
 
-  return (
+  const getMarkerIconSize = useCallback(() => {
+    return isMobile ? 'w-6 h-6' : 'w-5 h-5';
+  }, [isMobile]);
+ return (
     <div className="relative w-full h-full">
       <MapGLWrapper
         ref={mapRef}
@@ -312,13 +421,27 @@ export default function TripMapComponent({
         reuseMaps
         style={{ position: 'absolute', top: 0, bottom: 0, width: '100%', height: '100%' }}
       >
-        {/* Map Controls */}
-        <NavigationControl position="bottom-right" />
-        <GeolocateControl 
-          position="bottom-right" 
-          trackUserLocation
-          showAccuracyCircle={false}
-        />
+        {/* Map Controls - Mobile optimized positioning */}
+        <div style={{ 
+          position: 'absolute',
+          bottom: isMobile ? '80px' : '24px',
+          right: isMobile ? '12px' : '24px',
+          zIndex: 1000
+        }}>
+          <NavigationControl position="bottom-right" />
+        </div>
+        
+        <div style={{ 
+          position: 'absolute',
+          bottom: isMobile ? '140px' : '84px',
+          right: isMobile ? '12px' : '24px',
+          zIndex: 1000
+        }}>
+          <GeolocateControl 
+            trackUserLocation
+            showAccuracyCircle={false}
+          />
+        </div>
 
         {/* Route Lines */}
         {routeData.map((route, index) => (
@@ -332,14 +455,16 @@ export default function TripMapComponent({
               }}
               paint={{
                 'line-color': route.properties.color,
-                'line-width': mapViewState.showAllDays ? 4 : 6,
-                'line-opacity': getAnimatedOpacity() // FIXED: Use safe opacity calculation
+                'line-width': isMobile ? 
+                  (mapViewState.showAllDays ? 3 : 5) : 
+                  (mapViewState.showAllDays ? 4 : 6),
+                'line-opacity': getAnimatedOpacity()
               }}
             />
           </Source>
         ))}
 
-        {/* Place Markers */}
+        {/* Place Markers - Mobile optimized */}
         {displayPlaces.map((place, index) => {
           const typeInfo = getPlaceTypeInfo(place);
           const TypeIcon = typeInfo.icon;
@@ -355,35 +480,35 @@ export default function TripMapComponent({
             >
               <button
                 onClick={() => handlePlaceClick(place)}
-                onMouseEnter={() => onPlaceHighlight?.(place.id)}
-                onMouseLeave={() => onPlaceHighlight?.(null)}
+                onMouseEnter={() => !isMobile && onPlaceHighlight?.(place.id)}
+                onMouseLeave={() => !isMobile && onPlaceHighlight?.(null)}
                 className={`relative group transition-all duration-200 hover:scale-110 ${
                   isCurrentDay ? 'z-10' : 'z-5'
                 } ${isHighlighted ? 'animate-bounce' : ''}`}
               >
-                {/* Marker Pin */}
+                {/* Marker Pin - Mobile optimized size */}
                 <div className={`
-                  w-10 h-10 rounded-full border-3 border-white shadow-lg flex items-center justify-center
+                  ${getMarkerSize()} rounded-full border-3 border-white shadow-lg flex items-center justify-center
                   ${isCurrentDay ? typeInfo.color : 'bg-gray-400'}
                   ${mapViewState.showAllDays && !isCurrentDay ? 'opacity-60' : ''}
                   ${isHighlighted ? 'ring-4 ring-yellow-400 ring-opacity-60' : ''}
                 `}>
-                  <TypeIcon className="w-5 h-5 text-white" />
+                  <TypeIcon className={`${getMarkerIconSize()} text-white`} />
                 </div>
                 
-                {/* Place Index */}
+                {/* Place Index - Mobile optimized */}
                 {!mapViewState.showAllDays && (
-                  <div className={`absolute -top-2 -right-2 w-6 h-6 border-2 border-gray-300 rounded-full flex items-center justify-center text-xs font-bold text-gray-800 ${
+                  <div className={`absolute -top-2 -right-2 ${isMobile ? 'w-7 h-7' : 'w-6 h-6'} border-2 border-gray-300 rounded-full flex items-center justify-center ${isMobile ? 'text-sm' : 'text-xs'} font-bold text-gray-800 ${
                     isHighlighted ? 'bg-yellow-300 border-yellow-400' : 'bg-white'
                   }`}>
                     {index + 1}
                   </div>
                 )}
 
-                {/* Day Badge for all days view */}
+                {/* Day Badge for all days view - Mobile optimized */}
                 {mapViewState.showAllDays && (
                   <div 
-                    className={`absolute -top-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white ${
+                    className={`absolute -top-2 -right-2 ${isMobile ? 'w-7 h-7' : 'w-6 h-6'} rounded-full flex items-center justify-center ${isMobile ? 'text-sm' : 'text-xs'} font-bold text-white ${
                       isHighlighted ? 'ring-2 ring-yellow-400' : ''
                     }`}
                     style={{ backgroundColor: getDayColor(place.dayNumber || 1) }}
@@ -403,8 +528,8 @@ export default function TripMapComponent({
           );
         })}
 
-        {/* Place Popup */}
-       {selectedPlace && showPopup && (
+        {/* Mobile-optimized Popup */}
+        {selectedPlace && showPopup && (
           <Popup
             longitude={parseFloat(selectedPlace.longitude)}
             latitude={parseFloat(selectedPlace.latitude)}
@@ -412,86 +537,94 @@ export default function TripMapComponent({
             onClose={() => setShowPopup(false)}
             closeButton={false}
             closeOnClick={false}
-            offset={[0, -40]}
+            offset={[0, isMobile ? -50 : -40]}
             className="z-50"
-            maxWidth="none" // Allow custom width control
+            maxWidth="none"
           >
-            <div className="p-3 w-72 max-w-[90vw] bg-white rounded-xl shadow-lg border border-gray-100 max-h-[80vh] overflow-y-auto">
-              {/* Header */}
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex-1 min-w-0 pr-2">
-                  <h3 className="font-bold text-gray-900 text-base mb-1 line-clamp-2">{selectedPlace.name}</h3>
-                  <p className="text-sm text-gray-600 mb-2 line-clamp-2">{selectedPlace.address}</p>
+            {isMobile ? (
+              <MobileOptimizedPopup 
+                place={selectedPlace} 
+                onClose={() => setShowPopup(false)} 
+              />
+            ) : (
+              // Keep existing desktop popup
+              <div className="p-3 w-72 max-w-[90vw] bg-white rounded-xl shadow-lg border border-gray-100 max-h-[80vh] overflow-y-auto">
+                {/* Header */}
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex-1 min-w-0 pr-2">
+                    <h3 className="font-bold text-gray-900 text-base mb-1 line-clamp-2">{selectedPlace.name}</h3>
+                    <p className="text-sm text-gray-600 mb-2 line-clamp-2">{selectedPlace.address}</p>
+                    
+                    {/* Metadata */}
+                    <div className="flex items-center space-x-3 text-xs text-gray-500 flex-wrap gap-1">
+                      {selectedPlace.rating && (
+                        <div className="flex items-center space-x-1">
+                          <Star className="w-3 h-3 text-yellow-500 fill-current" />
+                          <span>{selectedPlace.rating.toFixed(1)}</span>
+                        </div>
+                      )}
+                      {selectedPlace.startTime && (
+                        <div className="flex items-center space-x-1">
+                          <Clock className="w-3 h-3" />
+                          <span>{selectedPlace.startTime}</span>
+                          {selectedPlace.endTime && <span> - {selectedPlace.endTime}</span>}
+                        </div>
+                      )}
+                    </div>
+                  </div>
                   
-                  {/* Metadata */}
-                  <div className="flex items-center space-x-3 text-xs text-gray-500 flex-wrap gap-1">
-                    {selectedPlace.rating && (
-                      <div className="flex items-center space-x-1">
-                        <Star className="w-3 h-3 text-yellow-500 fill-current" />
-                        <span>{selectedPlace.rating.toFixed(1)}</span>
-                      </div>
-                    )}
-                    {selectedPlace.startTime && (
-                      <div className="flex items-center space-x-1">
-                        <Clock className="w-3 h-3" />
-                        <span>{selectedPlace.startTime}</span>
-                        {selectedPlace.endTime && <span> - {selectedPlace.endTime}</span>}
-                      </div>
-                    )}
+                  <button 
+                    onClick={() => setShowPopup(false)}
+                    className="p-1 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0"
+                  >
+                    ×
+                  </button>
+                </div>
+
+                {/* Image */}
+                {selectedPlace.image && (
+                  <div className="relative h-24 sm:h-32 mb-3 rounded-lg overflow-hidden">
+                    <Image
+                      src={selectedPlace.image}
+                      alt={selectedPlace.name}
+                      fill
+                      className="object-cover"
+                    />
                   </div>
-                </div>
-                
-                <button 
-                  onClick={() => setShowPopup(false)}
-                  className="p-1 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0"
-                >
-                  ×
-                </button>
-              </div>
+                )}
 
-              {/* Image */}
-              {selectedPlace.image && (
-                <div className="relative h-24 sm:h-32 mb-3 rounded-lg overflow-hidden">
-                  <Image
-                    src={selectedPlace.image}
-                    alt={selectedPlace.name}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-              )}
-
-              {/* Notes */}
-              {selectedPlace.duration && (
-                <div className="mb-3 p-2 bg-blue-50 rounded-lg">
-                  <div className="flex items-center text-sm text-blue-800">
-                    <Clock className="w-4 h-4 mr-1 flex-shrink-0" />
-                    <span className="truncate">Thời gian dự kiến: {Math.floor(selectedPlace.duration / 60)}h {selectedPlace.duration % 60}m</span>
+                {/* Notes */}
+                {selectedPlace.duration && (
+                  <div className="mb-3 p-2 bg-blue-50 rounded-lg">
+                    <div className="flex items-center text-sm text-blue-800">
+                      <Clock className="w-4 h-4 mr-1 flex-shrink-0" />
+                      <span className="truncate">Thời gian dự kiến: {Math.floor(selectedPlace.duration / 60)}h {selectedPlace.duration % 60}m</span>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Actions */}
-              <div className="flex space-x-2">
-                <button 
-                  onClick={() => {
-                    const url = `https://www.google.com/maps/dir/?api=1&destination=${selectedPlace.latitude},${selectedPlace.longitude}`;
-                    window.open(url, '_blank');
-                  }}
-                  className="flex-1 flex items-center justify-center space-x-2 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors min-w-0"
-                >
-                  <Navigation className="w-4 h-4 flex-shrink-0" />
-                  <span className="truncate">Chỉ đường</span>
-                </button>
-                <button 
-                  className="p-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors flex-shrink-0"
-                  title="Chụp ảnh màn hình"
-                >
-                  <Camera className="w-4 h-4 text-gray-600" />
-                </button>
+                {/* Actions */}
+                <div className="flex space-x-2">
+                  <button 
+                    onClick={() => {
+                      const url = `https://www.google.com/maps/dir/?api=1&destination=${selectedPlace.latitude},${selectedPlace.longitude}`;
+                      window.open(url, '_blank');
+                    }}
+                    className="flex-1 flex items-center justify-center space-x-2 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors min-w-0"
+                  >
+                    <Navigation className="w-4 h-4 flex-shrink-0" />
+                    <span className="truncate">Chỉ đường</span>
+                  </button>
+                  <button 
+                    className="p-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors flex-shrink-0"
+                    title="Chụp ảnh màn hình"
+                  >
+                    <Camera className="w-4 h-4 text-gray-600" />
+                  </button>
+                </div>
               </div>
-            </div>
-          </Popup> 
+            )}
+          </Popup>
         )}
       </MapGLWrapper>
 
