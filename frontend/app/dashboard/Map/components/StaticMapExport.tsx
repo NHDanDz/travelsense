@@ -3,6 +3,7 @@
 
 import React, { useState } from 'react';
 import { Camera, Download, Share, Copy } from 'lucide-react';
+import Image from 'next/image';
 
 interface StaticMapExportProps {
   center: [number, number];
@@ -155,7 +156,7 @@ const StaticMapExport = ({ center, zoom, markers }: StaticMapExportProps) => {
             {imageUrl && (
               <div className="space-y-4">
                 <div className="border rounded-md overflow-hidden">
-                  <img src={imageUrl} alt="Static Map" className="w-full" />
+                  <Image src={imageUrl} alt="Static Map" className="w-full" />
                 </div>
                 
                 <div className="flex space-x-2">

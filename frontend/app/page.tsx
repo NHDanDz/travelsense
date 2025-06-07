@@ -1,4 +1,4 @@
-// app/page.tsx
+// app/page.tsx - Updated with PWA support
 'use client';
  
 import Link from 'next/link';
@@ -8,11 +8,12 @@ import { FaApple } from 'react-icons/fa';
 import { 
   MapPin, ArrowRight, Search, Star, 
   Calendar, Coffee, Hotel, Utensils, Landmark,
-  ChevronRight, CheckCircle
+  ChevronRight, CheckCircle, Download, Smartphone
 } from 'lucide-react';
 import SharedLayout from './components/layout/SharedLayout';
+import PWAInstallButton, { SimpleInstallButton, usePWAStatus } from './components/PWAInstallButton';
 
-// Featured places data
+// Featured places data (same as before)
 const featuredPlaces = [
   {
     id: 1,
@@ -48,7 +49,7 @@ const featuredPlaces = [
   }
 ];
 
-// Popular cities data
+// Popular cities data (same as before)
 const popularCities = [
   {
     id: 1,
@@ -88,7 +89,7 @@ const popularCities = [
   }
 ];
 
-// Testimonials data
+// Testimonials data (same as before)
 const testimonials = [
   {
     id: 1,
@@ -113,7 +114,7 @@ const testimonials = [
   }
 ];
 
-// Category icon mapping
+// Category icon mapping (same as before)
 const getCategoryIcon = (type: string) => {
   switch (type) {
     case 'restaurant':
@@ -127,6 +128,104 @@ const getCategoryIcon = (type: string) => {
     default:
       return <MapPin className="w-4 h-4" />;
   }
+};
+
+// PWA Features Section Component
+const PWAFeaturesSection = () => {
+  const { isInstalled, isStandalone } = usePWAStatus();
+
+  return (
+    <section className="py-20 bg-gradient-to-r from-blue-500 to-indigo-700 text-white">
+      <div className="container mx-auto px-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+          <div>
+            {isInstalled ? (
+              <>
+                <h2 className="text-3xl md:text-4xl font-bold mb-6">
+                  🎉 Cảm ơn bạn đã cài đặt TravelSense!
+                </h2>
+                <p className="text-xl text-blue-100 mb-8">
+                  Bây giờ bạn có thể truy cập TravelSense nhanh chóng ngay từ màn hình chính, thậm chí khi không có kết nối internet.
+                </p>
+              </>
+            ) : (
+              <>
+                <h2 className="text-3xl md:text-4xl font-bold mb-6">
+                  Ứng dụng TravelSense PWA
+                </h2>
+                <p className="text-xl text-blue-100 mb-8">
+                  Cài đặt TravelSense như một ứng dụng thực sự trên thiết bị của bạn. Truy cập nhanh, hoạt động offline, và trải nghiệm như ứng dụng native.
+                </p>
+              </>
+            )}
+            
+            <ul className="space-y-4 mb-8">
+              {[
+                'Hoạt động ngay cả khi offline',
+                'Khởi động nhanh từ màn hình chính',
+                'Không tốn dung lượng như app thường',
+                'Tự động cập nhật phiên bản mới',
+                'Nhận thông báo về địa điểm mới',
+                'Trải nghiệm toàn màn hình'
+              ].map((feature, index) => (
+                <li key={index} className="flex items-center">
+                  <CheckCircle className="w-6 h-6 text-green-400 mr-3 flex-shrink-0" />
+                  <span>{feature}</span>
+                </li>
+              ))}
+            </ul>
+            
+            {!isInstalled && (
+              <div className="flex flex-wrap gap-4">
+                <SimpleInstallButton className="bg-white text-blue-700 hover:bg-blue-50" />
+                
+                {/* Fallback mobile app links */}
+                <div className="flex gap-4">
+                  <a href="#" className="flex items-center py-2 px-4 bg-black hover:bg-gray-900 rounded-lg transition-colors text-sm">
+                    <FaApple className="w-6 h-6 mr-2" />
+                    <div>
+                      <div className="text-xs">Sắp có trên</div>
+                      <div className="font-semibold">App Store</div>
+                    </div>
+                  </a>
+                  <a href="#" className="flex items-center py-2 px-4 bg-black hover:bg-gray-900 rounded-lg transition-colors text-sm">
+                    <SiGoogleplay className="w-6 h-6 mr-2" />
+                    <div>
+                      <div className="text-xs">Sắp có trên</div>
+                      <div className="font-semibold">Google Play</div>
+                    </div>
+                  </a>
+                </div>
+              </div>
+            )}
+          </div>
+          
+          <div className="relative hidden md:block">
+            <div className="relative z-10 ml-10">
+              <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-8 border border-white/20">
+                <Smartphone className="w-16 h-16 mx-auto mb-4 text-white" />
+                <h3 className="text-xl font-bold text-center mb-4">Cài đặt dễ dàng</h3>
+                <div className="space-y-3 text-sm">
+                  <div className="flex items-center">
+                    <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center mr-3">1</div>
+                    <span>Nhấn nút "Cài đặt ứng dụng"</span>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center mr-3">2</div>
+                    <span>Xác nhận cài đặt</span>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center mr-3">3</div>
+                    <span>Truy cập từ màn hình chính</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
 };
 
 // Main HomePage component content
@@ -183,6 +282,7 @@ const HomePageContent = () => {
                 <Calendar className="h-5 w-5 mr-2" />
                 <span>Lập lịch trình</span>
               </Link>
+              <SimpleInstallButton className="bg-green-600 hover:bg-green-700" />
             </div>
           </div>
         </div>
@@ -241,7 +341,7 @@ const HomePageContent = () => {
         </div>
       </section>
       
-      {/* Featured Places */}
+      {/* Featured Places - same as before */}
       <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-6">
           <div className="flex justify-between items-end mb-10">
@@ -316,7 +416,7 @@ const HomePageContent = () => {
         </div>
       </section>
       
-      {/* Popular Cities */}
+      {/* Popular Cities - same as before */}
       <section className="py-20 bg-white">
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
@@ -358,76 +458,10 @@ const HomePageContent = () => {
         </div>
       </section>
       
-      {/* App Features */}
-      <section className="py-20 bg-gradient-to-r from-blue-500 to-indigo-700 text-white">
-        <div className="container mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
-            <div>
-              <h2 className="text-3xl md:text-4xl font-bold mb-6">
-                Ứng dụng TravelSense
-              </h2>
-              <p className="text-xl text-blue-100 mb-8">
-                Tải ứng dụng TravelSense để khám phá những địa điểm thú vị mọi lúc, mọi nơi, ngay cả khi không có kết nối internet.
-              </p>
-              
-              <ul className="space-y-4 mb-8">
-                {[
-                  'Khám phá địa điểm ngay cả khi offline',
-                  'Tạo và quản lý lịch trình du lịch',
-                  'Lưu địa điểm yêu thích để truy cập nhanh',
-                  'Nhận thông báo về các sự kiện và ưu đãi gần bạn',
-                  'Chia sẻ trải nghiệm với bạn bè'
-                ].map((feature, index) => (
-                  <li key={index} className="flex items-center">
-                    <CheckCircle className="w-6 h-6 text-green-400 mr-3 flex-shrink-0" />
-                    <span>{feature}</span>
-                  </li>
-                ))}
-              </ul>
-              
-              <div className="flex flex-wrap gap-4">
-                <a href="#" className="flex items-center py-2 px-6 bg-black hover:bg-gray-900 rounded-lg transition-colors">
-                  <FaApple className="w-8 h-8 mr-3" />
-                  <div>
-                    <div className="text-xs">Tải trên</div>
-                    <div className="text-xl font-semibold">App Store</div>
-                  </div>
-                </a>
-                <a href="#" className="flex items-center py-2 px-6 bg-black hover:bg-gray-900 rounded-lg transition-colors">
-                  <SiGoogleplay className="w-8 h-8 mr-3" />
-                  <div>
-                    <div className="text-xs">Tải trên</div>
-                    <div className="text-xl font-semibold">Google Play</div>
-                  </div>
-                </a>
-              </div>
-            </div>
-            
-            <div className="relative hidden md:block">
-              <div className="relative z-10 ml-10">
-                <Image
-                  src="/images/mobile-1.png"
-                  alt="TravelSense App"
-                  width={300}
-                  height={600}
-                  className="rounded-3xl shadow-2xl"
-                />
-              </div>
-              <div className="absolute -top-10 -left-10 z-0">
-                <Image
-                  src="/images/mobile-2.png"
-                  alt="TravelSense App"
-                  width={300}
-                  height={600}
-                  className="rounded-3xl shadow-2xl"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* PWA Features Section */}
+      <PWAFeaturesSection />
       
-      {/* Testimonials */}
+      {/* Testimonials - same as before */}
       <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
@@ -519,6 +553,9 @@ const HomePageContent = () => {
           </div>
         </div>
       </section>
+
+      {/* PWA Install Banner */}
+      <PWAInstallButton />
     </>
   );
 };

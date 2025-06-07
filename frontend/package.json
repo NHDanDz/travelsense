@@ -2,7 +2,7 @@
   "private": true,
   "scripts": {
     "build": "next build",
-    "dev": "next dev --turbo",
+    "dev": "next dev",
     "start": "next start",
     "lint": "next lint"
   },
@@ -29,17 +29,16 @@
     "lodash": "^4.17.21",
     "lucide-react": "^0.475.0",
     "mapbox-gl": "^3.12.0",
-    "next": "15.2.0-canary.51",
+    "next": "^15.3.3",
     "next-auth": "5.0.0-beta.25",
     "postgres": "^3.4.5",
-    "react": "latest",
-    "react-dom": "latest",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
     "react-icons": "^5.5.0",
     "react-leaflet": "^5.0.0",
     "react-leaflet-routing-machine": "^0.0.5",
     "react-map-gl": "^7.0.19",
     "react-toastify": "^11.0.5",
-    "typescript": "5.7.3",
     "use-debounce": "^10.0.4",
     "uuid": "^11.1.0",
     "zod": "^3.24.1"
@@ -62,7 +61,23 @@
     "eslint-config-next": "15.1.7",
     "mapbox-gl": "^2.15.0",
     "postcss": "8.5.1",
+    "prisma": "^6.9.0",
     "react-map-gl": "^7.1.6",
-    "tailwindcss": "3.4.17"
+    "tailwindcss": "3.4.17",
+    "typescript": "5.7.3"
+  },
+  "pnpm": {
+    "ignoredBuiltDependencies": [
+      "@prisma/client",
+      "bcrypt",
+      "sharp",
+      "unrs-resolver"
+    ],
+    "onlyBuiltDependencies": [
+      "@prisma/client",
+      "bcrypt",
+      "sharp",
+      "unrs-resolver"
+    ]
   }
 }

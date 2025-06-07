@@ -3,10 +3,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
 interface Params {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
+
 
 // Valid trip status values
 const VALID_STATUSES = ['draft', 'planned', 'completed'] as const;

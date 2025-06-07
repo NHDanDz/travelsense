@@ -1,0 +1,76 @@
+# docker-compose.yml - Chỉ backend + frontend (database chạy riêng)
+version: '3.8'
+
+services:
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: travelsense_backend
+    ports:
+      - "8089:8089"
+    env_file:
+      - ./backend/.env
+    volumes:
+      - ./backend/logs:/app/logs
+      # Nếu dùng SQLite, mount file database
+      - ./backend/DB.sqlite:/app/DB.sqlite
+    extra_hosts:
+      # Cho phép container truy cập host (database trên máy host)
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8089/docs"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: travelsense_frontend
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./frontend/.env
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8089
+    depends_on:
+      - backend
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+# External services (chạy bên ngoài Docker):
+# - Database (PostgreSQL/MySQL/SQLite)
+# - Redis (nếu có)
+# - Nginx (nếu cần)
+  # Nginx Reverse Proxy (optional)
+  nginx:
+    image: nginx:alpine
+    container_name: travelsense_nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/html:/usr/share/nginx/html
+    depends_on:
+      - frontend
+      - backend
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  default:
+    driver: bridge

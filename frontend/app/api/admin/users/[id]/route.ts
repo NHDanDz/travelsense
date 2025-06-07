@@ -3,10 +3,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
 interface Params {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
+
 
 // GET - Lấy chi tiết người dùng
 export async function GET(request: NextRequest, { params }: Params) {

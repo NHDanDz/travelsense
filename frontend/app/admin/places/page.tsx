@@ -7,6 +7,8 @@ import {
   AlertCircle, X, ChevronLeft, ChevronRight
 } from 'lucide-react';
 
+import Image from 'next/image';
+
 interface Place {
   id: number;
   name: string;
@@ -604,7 +606,7 @@ const AdminPlacesPage = () => {
                     <div className="flex items-center">
                       <div className="flex-shrink-0 h-12 w-12">
                         {place.imageUrl ? (
-                          <img
+                          <Image
                             className="h-12 w-12 rounded-lg object-cover"
                             src={place.imageUrl}
                             alt={place.name}

@@ -14,6 +14,7 @@ import { TripService } from '@/services/tripService';
 import { AuthService } from '@/lib/auth';
 import { Trip, Day, Place } from '@/types/trip';
 import SharedLayout from '@/app/components/layout/SharedLayout';
+import ProtectedRoute from '@/app/components/auth/ProtectedRoute';
 
 // Service imports
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://127.0.0.1:8089';
@@ -696,30 +697,40 @@ export default function TripPlannerPage() {
 useEffect(() => {
   const loadTrips = async () => {
     try { 
-     // Lấy userId từ AuthService
-      const userId = AuthService.getUserId();
-      
-      // Kiểm tra xác thực
+      // ✅ Kiểm tra authentication trước khi gọi getUserId()
       if (!AuthService.isAuthenticated()) {
         console.warn('User not authenticated, redirecting to login');
         router.push('/auth');
         return;
       }
+
+      // ✅ Chỉ gọi getUserId() khi đã chắc chắn user đã đăng nhập
+      const userId = AuthService.getUserId();
+      
       if (!userId) {
         throw new Error('User not authenticated');
       }      
+      
       const tripsData = await TripService.getTrips({ userId });
-       setTrips(tripsData);
+      setTrips(tripsData);
     } catch (error) {
       console.error('Error loading trips:', error);
-      setTrips(sampleTrips); // Fallback về sample data
+      
+      // ✅ Kiểm tra nếu lỗi là do chưa đăng nhập
+      if (error instanceof Error && error.message === 'No authenticated user found') {
+        console.warn('Authentication error, redirecting to login');
+        router.push('/auth');
+        return;
+      }
+      
+      setTrips(sampleTrips); // Fallback về sample data nếu lỗi khác
     } finally {
       setLoading(false);
     }
   };
   
   loadTrips();
-}, []);
+}, [router]); // ✅ Thêm router vào dependency array
   
   // Save trips to localStorage whenever they change
   useEffect(() => {
@@ -938,6 +949,7 @@ const handleCreateTrip = async (e: React.FormEvent) => {
   };
   
   return (
+    <ProtectedRoute>
       <SharedLayout>
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -1196,31 +1208,37 @@ const handleCreateTrip = async (e: React.FormEvent) => {
         )}
       </main>
       
-      {/* Create trip modal */}
+     {/* Create trip modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-xl w-full max-w-2xl my-8">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold text-gray-800">Tạo lịch trình mới</h2>
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-2 md:p-4 overflow-y-auto">
+          {/* Responsive width: nhỏ trên mobile, bình thường trên desktop */}
+          <div className="bg-white rounded-xl w-full max-w-sm md:max-w-2xl my-4 md:my-8">
+            {/* Responsive padding: nhỏ hơn trên mobile */}
+            <div className="p-3 md:p-6">
+              {/* Responsive spacing cho header */}
+              <div className="flex justify-between items-center mb-2 md:mb-4">
+                {/* Responsive text size */}
+                <h2 className="text-lg md:text-xl font-bold text-gray-800">Tạo lịch trình mới</h2>
                 <button 
                   className="text-gray-400 hover:text-gray-600"
                   onClick={resetForm}
                 >
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  {/* Responsive icon size */}
+                  <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
               </div>
               
               <form onSubmit={handleCreateTrip}>
-                <div className="space-y-4">
+                {/* Responsive spacing cho form */}
+                <div className="space-y-2 md:space-y-4">
                   {/* AI Toggle */}
-                  <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-4 border border-purple-200">
+                  <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-2 md:p-4 border border-purple-200">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center">
-                        <Sparkles className="w-5 h-5 text-purple-600 mr-2" />
-                        <span className="font-medium text-gray-800">Tạo lịch trình bằng AI</span>
+                        <Sparkles className="w-4 h-4 md:w-5 md:h-5 text-purple-600 mr-2" />
+                        <span className="font-medium text-gray-800 text-sm md:text-base">Tạo lịch trình bằng AI</span>
                       </div>
                       <label className="relative inline-flex items-center cursor-pointer">
                         <input
@@ -1229,18 +1247,18 @@ const handleCreateTrip = async (e: React.FormEvent) => {
                           onChange={(e) => setUseAI(e.target.checked)}
                           className="sr-only peer"
                         />
-                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                        <div className="w-9 h-5 md:w-11 md:h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 md:after:h-5 md:after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
                       </label>
                     </div>
                     {useAI && (
-                      <p className="text-sm text-gray-600 mt-2">
+                      <p className="text-xs md:text-sm text-gray-600 mt-2">
                         AI sẽ tự động tạo lịch trình chi tiết với các địa điểm, thời gian và đánh giá cho bạn
                       </p>
                     )}
                   </div>
                   
-                  {/* Basic Information */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Basic Information - Responsive grid */}
+                  <div className="space-y-2 md:grid md:grid-cols-1 lg:grid-cols-2 md:gap-4 md:space-y-0">
                     {!useAI && (
                       <div className="md:col-span-2">
                         <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
@@ -1253,7 +1271,7 @@ const handleCreateTrip = async (e: React.FormEvent) => {
                           value={newTrip.name}
                           onChange={handleInputChange}
                           placeholder="Ví dụ: Khám phá Hà Nội"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          className="w-full px-2 md:px-3 py-2 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         />
                       </div>
                     )}
@@ -1268,8 +1286,8 @@ const handleCreateTrip = async (e: React.FormEvent) => {
                         name="destination"
                         value={newTrip.destination}
                         onChange={handleInputChange}
-                        placeholder="Ví dụ: Hà Nội, Đà Nẵng, Phú Quốc..."
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Ví dụ: Hà Nội, Đà Nẵng..."
+                        className="w-full px-2 md:px-3 py-2 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         required
                       />
                     </div>
@@ -1283,7 +1301,7 @@ const handleCreateTrip = async (e: React.FormEvent) => {
                         name="travelCompanions"
                         value={newTrip.travelCompanions}
                         onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-2 md:px-3 py-2 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       >
                         <option value="1">Đi một mình</option>
                         <option value="2">2 người</option>
@@ -1294,7 +1312,8 @@ const handleCreateTrip = async (e: React.FormEvent) => {
                     </div>
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* Date fields - Responsive grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4">
                     <div>
                       <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-1">
                         Ngày bắt đầu <span className="text-red-500">*</span>
@@ -1305,7 +1324,7 @@ const handleCreateTrip = async (e: React.FormEvent) => {
                         name="startDate"
                         value={newTrip.startDate}
                         onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-2 md:px-3 py-2 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         min={new Date().toISOString().split('T')[0]}
                         required
                       />
@@ -1321,7 +1340,7 @@ const handleCreateTrip = async (e: React.FormEvent) => {
                         name="endDate"
                         value={newTrip.endDate}
                         onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-2 md:px-3 py-2 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         min={newTrip.startDate || new Date().toISOString().split('T')[0]}
                         required
                       />
@@ -1338,23 +1357,23 @@ const handleCreateTrip = async (e: React.FormEvent) => {
                         value={newTrip.estimatedBudget}
                         onChange={handleInputChange}
                         placeholder="VND"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-2 md:px-3 py-2 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       />
                     </div>
                   </div>
                   
-                  {/* Tags */}
+                  {/* Tags - Responsive */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Thể loại chuyến đi
                     </label>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-1 md:gap-2">
                       {availableTags.map(tag => (
                         <button
                           key={tag}
                           type="button"
                           onClick={() => toggleTag(tag)}
-                          className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                          className={`px-2 md:px-3 py-1 rounded-full text-xs md:text-sm font-medium transition-colors ${
                             selectedTags.includes(tag)
                               ? 'bg-blue-600 text-white'
                               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -1375,9 +1394,9 @@ const handleCreateTrip = async (e: React.FormEvent) => {
                         id="preferences"
                         value={aiPreferences}
                         onChange={(e) => setAiPreferences(e.target.value)}
-                        placeholder="Ví dụ: Thích ẩm thực địa phương, muốn tham quan bảo tàng, tránh leo núi, phù hợp cho trẻ em..."
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        rows={3}
+                        placeholder="Ví dụ: Thích ẩm thực địa phương, muốn tham quan bảo tàng..."
+                        className="w-full px-2 md:px-3 py-2 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        rows={2}
                       />
                     </div>
                   ) : (
@@ -1391,35 +1410,37 @@ const handleCreateTrip = async (e: React.FormEvent) => {
                         value={newTrip.description}
                         onChange={handleInputChange}
                         placeholder="Mô tả ngắn về chuyến đi của bạn"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        rows={3}
+                        className="w-full px-2 md:px-3 py-2 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        rows={2}
                       />
                     </div>
                   )}
                   
-                  <div className="flex justify-end space-x-3 pt-4">
+                  <div className="flex justify-end space-x-2 md:space-x-3 pt-2 md:pt-4">
                     <button
                       type="button"
                       onClick={resetForm}
-                      className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50"
+                      className="px-2 md:px-4 py-2 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50 text-sm"
                       disabled={isGenerating}
                     >
                       Hủy
                     </button>
                     <button
                       type="submit"
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                      className="px-2 md:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center text-sm"
                       disabled={isGenerating}
                     >
                       {isGenerating ? (
                         <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          <span>Đang tạo...</span>
+                          <Loader2 className="w-4 h-4 mr-1 md:mr-2 animate-spin" />
+                          <span className="hidden md:inline">Đang tạo...</span>
+                          <span className="md:hidden">Tạo...</span>
                         </>
                       ) : (
                         <>
-                          {useAI && <Sparkles className="w-4 h-4 mr-2" />}
-                          <span>{useAI ? 'Tạo với AI' : 'Tạo lịch trình'}</span>
+                          {useAI && <Sparkles className="w-4 h-4 mr-1 md:mr-2" />}
+                          <span className="hidden md:inline">{useAI ? 'Tạo với AI' : 'Tạo lịch trình'}</span>
+                          <span className="md:hidden">{useAI ? 'AI' : 'Tạo'}</span>
                         </>
                       )}
                     </button>
@@ -1462,6 +1483,7 @@ const handleCreateTrip = async (e: React.FormEvent) => {
       
     </div>
     </SharedLayout>
+    </ProtectedRoute>
 
   );
 }

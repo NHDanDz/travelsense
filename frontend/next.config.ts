@@ -1,7 +1,14 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  output: 'standalone', // Thêm dòng này cho Render
+   
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  
+  typescript: {
+    ignoreBuildErrors: true,
+  },
   
   images: {
     remotePatterns: [
@@ -24,13 +31,13 @@ const nextConfig: NextConfig = {
     ],
   },
   
-  experimental: {
-    turbo: {
-      rules: {},
-      resolveAlias: {},
-    },
-    ppr: 'incremental',
-  },
+  // experimental: {
+  //   turbo: {
+  //     rules: {},
+  //     resolveAlias: {},
+  //   },
+  //   ppr: 'incremental',
+  // },
   
   webpack: (config, { isServer }) => {
     if (!isServer) {

@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link'; 
 import { 
-  MapPin, Compass, Star,  
+  MapPin, Compass, Star, Calendar,
   Menu, X, User, LogOut
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -121,13 +121,13 @@ export const Navbar = () => {
             <>
               <Link 
                 href="/account" 
-                className="font-medium text-gray-700 hover:text-blue-500 transition-colors"
+                className="font-small text-gray-700 hover:text-blue-500 transition-colors"
               >
                 Xin chào, {user.username}
               </Link>
               <button
                 onClick={handleLogout}
-                className="font-medium text-red-600 hover:text-red-700 transition-colors"
+                className="font-small text-red-600 hover:text-red-700 transition-colors"
               >
                 Đăng xuất
               </button>
@@ -392,44 +392,39 @@ export const MobileNavigation = () => {
   };
 
   return (
-    <div className="md:hidden fixed bottom-0 inset-x-0 bg-white border-t border-gray-200 z-20">
-      <div className="grid grid-cols-4 h-16">
+    <div className="md:hidden fixed bottom-0 inset-x-0 bg-white border-t border-gray-200 z-30 shadow-lg">
+      <div className="grid grid-cols-5 h-14">
         <Link
           href="/dashboard"
-          className="flex flex-col items-center justify-center text-gray-600 hover:text-blue-600"
+          className="flex flex-col items-center justify-center text-gray-500 hover:text-blue-600 transition-colors active:scale-95"
         >
-          <Compass className="h-6 w-6" />
-          <span className="text-xs mt-1">Trang chủ</span>
+          <Compass className="h-5 w-5" />
         </Link>
         <Link
           href="/dashboard/Map"
-          className="flex flex-col items-center justify-center text-gray-600 hover:text-blue-600"
+          className="flex flex-col items-center justify-center text-gray-500 hover:text-blue-600 transition-colors active:scale-95"
         >
-          <MapPin className="h-6 w-6" />
-          <span className="text-xs mt-1">Bản đồ</span>
+          <MapPin className="h-5 w-5" />
         </Link>
         <Link
-          href="/saved"
-          className="flex flex-col items-center justify-center text-gray-600 hover:text-blue-600"
+          href="/trip-planner"
+          className="flex flex-col items-center justify-center text-gray-500 hover:text-blue-600 transition-colors active:scale-95"
         >
-          <Star className="h-6 w-6" />
-          <span className="text-xs mt-1">Đã lưu</span>
-        </Link>
+          <Calendar className="h-5 w-5" />
+        </Link> 
         {user ? (
           <Link
             href="/account"
-            className="flex flex-col items-center justify-center text-gray-600 hover:text-blue-600"
+            className="flex flex-col items-center justify-center text-gray-500 hover:text-blue-600 transition-colors active:scale-95"
           >
-            <User className="h-6 w-6" />
-            <span className="text-xs mt-1">Tài khoản</span>
+            <User className="h-5 w-5" />
           </Link>
         ) : (
           <Link
             href="/auth"
-            className="flex flex-col items-center justify-center text-gray-600 hover:text-blue-600"
+            className="flex flex-col items-center justify-center text-gray-500 hover:text-blue-600 transition-colors active:scale-95"
           >
-            <User className="h-6 w-6" />
-            <span className="text-xs mt-1">Tài khoản</span>
+            <User className="h-5 w-5" />
           </Link>
         )}
       </div>

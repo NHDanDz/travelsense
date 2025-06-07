@@ -9,8 +9,18 @@ export class AuthService {
   // Key để lưu user trong storage
   private static readonly USER_STORAGE_KEY = 'user';
 
+  // Kiểm tra xem có đang chạy trong môi trường browser không
+  private static isBrowser(): boolean {
+    return typeof window !== 'undefined';
+  }
+
   // Lấy current user từ localStorage hoặc sessionStorage
   static getCurrentUser(): User | null {
+    // ✅ Kiểm tra môi trường browser trước
+    if (!this.isBrowser()) {
+      return null;
+    }
+
     try {
       // ✅ Check localStorage first (persistent login)
       let userData = localStorage.getItem(this.USER_STORAGE_KEY);
@@ -57,6 +67,12 @@ export class AuthService {
 
   // Lưu user vào storage sau khi đăng nhập
   static login(user: User, rememberMe: boolean = false): void {
+    // ✅ Kiểm tra môi trường browser trước
+    if (!this.isBrowser()) {
+      console.warn('Cannot save user data: not in browser environment');
+      return;
+    }
+
     try {
       const userJson = JSON.stringify(user);
       if (rememberMe) {
@@ -71,8 +87,17 @@ export class AuthService {
 
   // Xóa user khỏi cả localStorage và sessionStorage khi đăng xuất
   static logout(): void {
-    localStorage.removeItem(this.USER_STORAGE_KEY);
-    sessionStorage.removeItem(this.USER_STORAGE_KEY);
+    // ✅ Kiểm tra môi trường browser trước
+    if (!this.isBrowser()) {
+      return;
+    }
+
+    try {
+      localStorage.removeItem(this.USER_STORAGE_KEY);
+      sessionStorage.removeItem(this.USER_STORAGE_KEY);
+    } catch (error) {
+      console.error('Error during logout:', error);
+    }
   }
 
   // Tạo user mới (cho test hoặc đăng ký)
@@ -96,5 +121,16 @@ export class AuthService {
     // Lưu user mới vào storage (giả lập đăng nhập)
     this.login(newUser, false); // Default to session-only for new registrations
     return newUser;
+  }
+
+  // ✅ Phương thức mới: Khởi tạo auth state sau khi component mount
+  static initializeAuth(callback?: (user: User | null) => void): void {
+    if (!this.isBrowser()) {
+      return;
+    }
+
+    // Gọi callback với current user (nếu có)
+    const user = this.getCurrentUser();
+    callback?.(user);
   }
 }

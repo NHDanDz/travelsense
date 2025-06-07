@@ -41,9 +41,9 @@ const statusUpdateSchema = z.object({
 });
 
 interface Params {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 // Type definitions

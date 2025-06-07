@@ -3,10 +3,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
 interface Params {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
+
 
 // GET - Lấy dữ liệu thời tiết cho thành phố theo ngày
 export async function GET(request: NextRequest, { params }: Params) {

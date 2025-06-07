@@ -7,6 +7,8 @@ import {
   Image as ImageIcon, AlertCircle, X, CheckCircle 
 } from 'lucide-react';
 
+import Image from 'next/image';
+
 interface City {
   id: number;
   name: string;
@@ -347,7 +349,7 @@ const AdminCitiesPage = () => {
           <div key={city.id} className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow">
             <div className="relative h-48">
               {city.imageUrl ? (
-                <img
+                <Image
                   src={city.imageUrl}
                   alt={city.name}
                   className="w-full h-full object-cover rounded-t-lg"
