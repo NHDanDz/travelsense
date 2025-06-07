@@ -1,0 +1,128 @@
+{
+  "name": "TravelSense - Khám phá địa điểm tuyệt vời",
+  "short_name": "TravelSense",
+  "description": "Nền tảng du lịch thông minh giúp bạn khám phá những địa điểm tuyệt vời xung quanh bạn.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#667eea",
+  "theme_color": "#3b82f6",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "vi",
+  "categories": ["travel", "lifestyle", "navigation"],
+  "screenshots": [
+    {
+      "src": "/images/screenshot-mobile.jpg",
+      "type": "image/jpeg",
+      "sizes": "390x844",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "/images/screenshot-desktop.jpg", 
+      "type": "image/jpeg",
+      "sizes": "1280x720",
+      "form_factor": "wide"
+    }
+  ],
+  "icons": [
+    {
+      "src": "/icons/icon-72x72.svg",
+      "sizes": "72x72",
+      "type": "image/svg+xml",
+      "density": "1.5"
+    },
+    {
+      "src": "/icons/icon-96x96.svg",
+      "sizes": "96x96",
+      "type": "image/svg+xml",
+      "density": "2.0"
+    },
+    {
+      "src": "/icons/icon-128x128.svg",
+      "sizes": "128x128",
+      "type": "image/svg+xml",
+      "density": "2.5"
+    },
+    {
+      "src": "/icons/icon-144x144.svg",
+      "sizes": "144x144",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon-192x192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-384x384.svg",
+      "sizes": "384x384",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon-512x512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Xem bản đồ",
+      "short_name": "Bản đồ",
+      "description": "Khám phá địa điểm trên bản đồ",
+      "url": "/dashboard/Map",
+      "icons": [
+        {
+          "src": "/icons/map-shortcut.svg",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "Lập lịch trình",
+      "short_name": "Lịch trình", 
+      "description": "Tạo lịch trình du lịch",
+      "url": "/trip-planner",
+      "icons": [
+        {
+          "src": "/icons/trip-shortcut.svg",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "Yêu thích",
+      "short_name": "Yêu thích",
+      "description": "Xem địa điểm yêu thích",
+      "url": "/dashboard/Map?tab=favorites",
+      "icons": [
+        {
+          "src": "/icons/favorites-shortcut.svg",
+          "sizes": "96x96", 
+          "type": "image/svg+xml"
+        }
+      ]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  },
+  "handle_links": "preferred",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "protocol_handlers": [
+    {
+      "protocol": "web+travelsense",
+      "url": "/share?url=%s"
+    }
+  ]
+}

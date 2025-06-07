@@ -1,4 +1,4 @@
-// app/page.tsx - Updated with PWA support
+// app/page.tsx - Updated with enhanced PWA integration
 'use client';
  
 import Link from 'next/link';
@@ -8,12 +8,14 @@ import { FaApple } from 'react-icons/fa';
 import { 
   MapPin, ArrowRight, Search, Star, 
   Calendar, Coffee, Hotel, Utensils, Landmark,
-  ChevronRight, CheckCircle, Download, Smartphone
+  ChevronRight, CheckCircle, Download, Smartphone,
+  Zap, Wifi, Shield, Clock
 } from 'lucide-react';
 import SharedLayout from './components/layout/SharedLayout';
 import PWAInstallButton, { SimpleInstallButton, usePWAStatus } from './components/PWAInstallButton';
+import { useState, useEffect } from 'react';
 
-// Featured places data (same as before)
+// Featured places data
 const featuredPlaces = [
   {
     id: 1,
@@ -49,7 +51,7 @@ const featuredPlaces = [
   }
 ];
 
-// Popular cities data (same as before)
+// Popular cities data
 const popularCities = [
   {
     id: 1,
@@ -89,7 +91,7 @@ const popularCities = [
   }
 ];
 
-// Testimonials data (same as before)
+// Testimonials data
 const testimonials = [
   {
     id: 1,
@@ -114,7 +116,7 @@ const testimonials = [
   }
 ];
 
-// Category icon mapping (same as before)
+// Category icon mapping
 const getCategoryIcon = (type: string) => {
   switch (type) {
     case 'restaurant':
@@ -130,96 +132,255 @@ const getCategoryIcon = (type: string) => {
   }
 };
 
-// PWA Features Section Component
+// Enhanced PWA Features Section Component
 const PWAFeaturesSection = () => {
-  const { isInstalled, isStandalone } = usePWAStatus();
+  // Sửa lỗi 1 & 2: Destructure đúng các property từ usePWAStatus
+  const { isInstalled, isStandalone, isInstallable } = usePWAStatus();
+  
+  // Sửa lỗi 2: Tạo custom hook để detect online status
+  const [isOnline, setIsOnline] = useState(true);
+  
+  // Sửa lỗi 3: Tạo function để detect platform
+  const [platform, setPlatform] = useState<string>('');
+  
+  useEffect(() => {
+    // Detect online/offline status
+    const handleOnlineStatus = () => setIsOnline(navigator.onLine);
+    
+    window.addEventListener('online', handleOnlineStatus);
+    window.addEventListener('offline', handleOnlineStatus);
+    
+    // Detect platform
+    const userAgent = navigator.userAgent.toLowerCase();
+    if (userAgent.includes('iphone') || userAgent.includes('ipad')) {
+      setPlatform('ios');
+    } else if (userAgent.includes('android')) {
+      setPlatform('android');
+    } else {
+      setPlatform('desktop');
+    }
+    
+    // Initial online status
+    setIsOnline(navigator.onLine);
+    
+    return () => {
+      window.removeEventListener('online', handleOnlineStatus);
+      window.removeEventListener('offline', handleOnlineStatus);
+    };
+  }, []);
+
+  const pwaFeatures = [
+    {
+      icon: <Zap className="w-8 h-8 text-yellow-400" />,
+      title: 'Khởi động siêu nhanh',
+      description: 'Mở ngay lập tức từ màn hình chính, không cần đợi loading',
+      highlight: '< 1 giây'
+    },
+    {
+      icon: <Wifi className="w-8 h-8 text-green-400" />,
+      title: 'Hoạt động offline',
+      description: 'Xem địa điểm đã lưu và lập lịch trình ngay cả khi không có mạng',
+      highlight: 'Luôn sẵn sàng'
+    },
+    {
+      icon: <Shield className="w-8 h-8 text-blue-400" />,
+      title: 'An toàn & riêng tư',
+      description: 'Không quảng cáo, không theo dõi, dữ liệu được bảo vệ',
+      highlight: '100% an toàn'
+    },
+    {
+      icon: <Clock className="w-8 h-8 text-purple-400" />,
+      title: 'Cập nhật tự động',
+      description: 'Luôn có phiên bản mới nhất mà không cần cập nhật thủ công',
+      highlight: 'Tự động'
+    }
+  ];
 
   return (
-    <section className="py-20 bg-gradient-to-r from-blue-500 to-indigo-700 text-white">
-      <div className="container mx-auto px-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+    <section className="py-20 bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-800 text-white overflow-hidden relative">
+      {/* Background compass pattern */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute top-10 left-10 w-32 h-32">
+          <svg viewBox="0 0 128 128" className="w-full h-full text-white animate-spin-slow">
+            <circle cx="64" cy="64" r="50" fill="none" stroke="currentColor" strokeWidth="2"/>
+            <path d="M 64 24 L 59 44 L 64 39 L 69 44 Z" fill="currentColor"/>
+            <path d="M 104 64 L 84 59 L 89 64 L 84 69 Z" fill="currentColor"/>
+            <path d="M 64 104 L 69 84 L 64 89 L 59 84 Z" fill="currentColor"/>
+            <path d="M 24 64 L 44 69 L 39 64 L 44 59 Z" fill="currentColor"/>
+          </svg>
+        </div>
+        <div className="absolute bottom-10 right-10 w-48 h-48">
+          <svg viewBox="0 0 192 192" className="w-full h-full text-white animate-spin-reverse">
+            <circle cx="96" cy="96" r="75" fill="none" stroke="currentColor" strokeWidth="1.5"/>
+            <path d="M 96 36 L 89 66 L 96 58.5 L 103 66 Z" fill="currentColor"/>
+            <path d="M 156 96 L 126 89 L 133.5 96 L 126 103 Z" fill="currentColor"/>
+            <path d="M 96 156 L 103 126 L 96 133.5 L 89 126 Z" fill="currentColor"/>
+            <path d="M 36 96 L 66 103 L 58.5 96 L 66 89 Z" fill="currentColor"/>
+          </svg>
+        </div>
+      </div>
+
+      <div className="container mx-auto px-6 relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <div>
             {isInstalled ? (
               <>
-                <h2 className="text-3xl md:text-4xl font-bold mb-6">
-                  🎉 Cảm ơn bạn đã cài đặt TravelSense!
+                <div className="inline-flex items-center bg-green-500/20 text-green-300 px-4 py-2 rounded-full text-sm font-medium mb-6">
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  PWA đã được cài đặt
+                </div>
+                <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
+                  🎉 Cảm ơn bạn đã cài đặt!
                 </h2>
                 <p className="text-xl text-blue-100 mb-8">
-                  Bây giờ bạn có thể truy cập TravelSense nhanh chóng ngay từ màn hình chính, thậm chí khi không có kết nối internet.
+                  Bây giờ bạn có thể truy cập TravelSense nhanh chóng ngay từ màn hình chính, 
+                  thậm chí khi không có kết nối internet.
                 </p>
               </>
             ) : (
               <>
-                <h2 className="text-3xl md:text-4xl font-bold mb-6">
-                  Ứng dụng TravelSense PWA
+                <div className="inline-flex items-center bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm font-medium mb-6">
+                  🧭 Progressive Web App
+                </div>
+                <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
+                  Trải nghiệm như ứng dụng thật
                 </h2>
                 <p className="text-xl text-blue-100 mb-8">
-                  Cài đặt TravelSense như một ứng dụng thực sự trên thiết bị của bạn. Truy cập nhanh, hoạt động offline, và trải nghiệm như ứng dụng native.
+                  Cài đặt TravelSense như một ứng dụng thực sự trên thiết bị của bạn. 
+                  Truy cập nhanh, hoạt động offline, và trải nghiệm mượt mà.
                 </p>
               </>
             )}
             
-            <ul className="space-y-4 mb-8">
-              {[
-                'Hoạt động ngay cả khi offline',
-                'Khởi động nhanh từ màn hình chính',
-                'Không tốn dung lượng như app thường',
-                'Tự động cập nhật phiên bản mới',
-                'Nhận thông báo về địa điểm mới',
-                'Trải nghiệm toàn màn hình'
-              ].map((feature, index) => (
-                <li key={index} className="flex items-center">
-                  <CheckCircle className="w-6 h-6 text-green-400 mr-3 flex-shrink-0" />
-                  <span>{feature}</span>
-                </li>
+            {/* PWA Features Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+              {pwaFeatures.map((feature, index) => (
+                <div key={index} className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
+                  <div className="flex items-center mb-2">
+                    {feature.icon}
+                    <span className="ml-2 text-sm font-medium text-blue-200">{feature.highlight}</span>
+                  </div>
+                  <h3 className="font-semibold text-white mb-1">{feature.title}</h3>
+                  <p className="text-sm text-blue-100 leading-relaxed">{feature.description}</p>
+                </div>
               ))}
-            </ul>
+            </div>
             
             {!isInstalled && (
               <div className="flex flex-wrap gap-4">
-                <SimpleInstallButton className="bg-white text-blue-700 hover:bg-blue-50" />
+                <SimpleInstallButton className="bg-white text-blue-700 hover:bg-blue-50 shadow-lg" />
+                
+                {/* Platform specific instructions */}
+                {platform === 'ios' && (
+                  <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-4 text-sm">
+                    <div className="flex items-center text-white mb-2">
+                      <FaApple className="w-4 h-4 mr-2" />
+                      <span className="font-medium">iOS Safari:</span>
+                    </div>
+                    <div className="text-blue-100 space-y-1">
+                      <div>1. Nhấn nút Share 📤</div>
+                      <div>2. Chọn "Thêm vào màn hình chính"</div>
+                      <div>3. Nhấn "Thêm"</div>
+                    </div>
+                  </div>
+                )}
                 
                 {/* Fallback mobile app links */}
-                <div className="flex gap-4">
-                  <a href="#" className="flex items-center py-2 px-4 bg-black hover:bg-gray-900 rounded-lg transition-colors text-sm">
-                    <FaApple className="w-6 h-6 mr-2" />
-                    <div>
-                      <div className="text-xs">Sắp có trên</div>
-                      <div className="font-semibold">App Store</div>
-                    </div>
-                  </a>
-                  <a href="#" className="flex items-center py-2 px-4 bg-black hover:bg-gray-900 rounded-lg transition-colors text-sm">
-                    <SiGoogleplay className="w-6 h-6 mr-2" />
-                    <div>
-                      <div className="text-xs">Sắp có trên</div>
-                      <div className="font-semibold">Google Play</div>
-                    </div>
-                  </a>
+                <div className="flex gap-3">
+                  <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-3 text-xs text-center min-w-[120px]">
+                    <FaApple className="w-6 h-6 mx-auto mb-1" />
+                    <div className="text-blue-200">Sắp có trên</div>
+                    <div className="font-semibold">App Store</div>
+                  </div>
+                  <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-3 text-xs text-center min-w-[120px]">
+                    <SiGoogleplay className="w-6 h-6 mx-auto mb-1" />
+                    <div className="text-blue-200">Sắp có trên</div>
+                    <div className="font-semibold">Google Play</div>
+                  </div>
                 </div>
               </div>
             )}
+
+            {/* Online/Offline Status */}
+            <div className="mt-6 flex items-center text-sm">
+              <div className={`w-3 h-3 rounded-full mr-2 ${isOnline ? 'bg-green-400' : 'bg-red-400'}`}></div>
+              <span className="text-blue-100">
+                {isOnline ? 'Đang trực tuyến' : 'Đang ngoại tuyến'} 
+                {!isOnline && ' - Tính năng offline vẫn hoạt động'}
+              </span>
+            </div>
           </div>
           
-          <div className="relative hidden md:block">
-            <div className="relative z-10 ml-10">
-              <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-8 border border-white/20">
-                <Smartphone className="w-16 h-16 mx-auto mb-4 text-white" />
-                <h3 className="text-xl font-bold text-center mb-4">Cài đặt dễ dàng</h3>
-                <div className="space-y-3 text-sm">
-                  <div className="flex items-center">
-                    <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center mr-3">1</div>
-                    <span>Nhấn nút "Cài đặt ứng dụng"</span>
+          {/* Right side - Enhanced visual */}
+          <div className="relative">
+            <div className="relative z-10 mx-auto max-w-sm">
+              {/* Phone mockup */}
+              <div className="bg-gray-900 rounded-[2.5rem] p-2 shadow-2xl">
+                <div className="bg-white rounded-[2rem] overflow-hidden">
+                  {/* Phone header */}
+                  <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-4 text-white">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        {/* Beautiful compass icon */}
+                        <div className="w-8 h-8">
+                          <svg viewBox="0 0 32 32" className="w-full h-full text-yellow-300">
+                            <circle cx="16" cy="16" r="12" fill="none" stroke="currentColor" strokeWidth="1.5"/>
+                            <path d="M 16 8 L 14 14 L 16 12 L 18 14 Z" fill="currentColor"/>
+                            <path d="M 24 16 L 18 14 L 20 16 L 18 18 Z" fill="currentColor"/>
+                            <path d="M 16 24 L 18 18 L 16 20 L 14 18 Z" fill="currentColor"/>
+                            <path d="M 8 16 L 14 18 L 12 16 L 14 14 Z" fill="currentColor"/>
+                            <circle cx="16" cy="16" r="2" fill="#ff4757"/>
+                          </svg>
+                        </div>
+                        <span className="font-bold">TravelSense</span>
+                      </div>
+                      <div className="flex space-x-1">
+                        <div className="w-2 h-2 bg-white/60 rounded-full"></div>
+                        <div className="w-2 h-2 bg-white/60 rounded-full"></div>
+                        <div className="w-2 h-2 bg-white rounded-full"></div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex items-center">
-                    <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center mr-3">2</div>
-                    <span>Xác nhận cài đặt</span>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center mr-3">3</div>
-                    <span>Truy cập từ màn hình chính</span>
+                  
+                  {/* Phone content */}
+                  <div className="p-4 space-y-3">
+                    <div className="flex justify-between items-center">
+                      <h3 className="font-bold text-gray-800">Địa điểm gần bạn</h3>
+                      <MapPin className="w-5 h-5 text-blue-600" />
+                    </div>
+                    
+                    {featuredPlaces.slice(0, 3).map((place, index) => (
+                      <div key={index} className="flex items-center space-x-3 p-2 bg-gray-50 rounded-lg">
+                        <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                          {getCategoryIcon(place.type)}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-sm text-gray-800 truncate">{place.name}</div>
+                          <div className="flex items-center text-xs text-gray-500">
+                            <Star className="w-3 h-3 text-yellow-400 mr-1" />
+                            {place.rating}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    
+                    <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-3 rounded-lg border border-blue-100">
+                      <div className="flex items-center text-sm text-blue-700">
+                        <CheckCircle className="w-4 h-4 mr-2" />
+                        <span>Hoạt động ngay cả khi offline</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
+            </div>
+            
+            {/* Floating elements */}
+            <div className="absolute -top-4 -left-4 bg-white/20 backdrop-blur-sm rounded-full p-3 animate-float">
+              <Zap className="w-6 h-6 text-yellow-300" />
+            </div>
+            <div className="absolute -bottom-4 -right-4 bg-white/20 backdrop-blur-sm rounded-full p-3 animate-float-delay">
+              <Wifi className="w-6 h-6 text-green-300" />
             </div>
           </div>
         </div>
@@ -341,7 +502,7 @@ const HomePageContent = () => {
         </div>
       </section>
       
-      {/* Featured Places - same as before */}
+      {/* Featured Places */}
       <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-6">
           <div className="flex justify-between items-end mb-10">
@@ -416,7 +577,7 @@ const HomePageContent = () => {
         </div>
       </section>
       
-      {/* Popular Cities - same as before */}
+      {/* Popular Cities */}
       <section className="py-20 bg-white">
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
@@ -458,10 +619,10 @@ const HomePageContent = () => {
         </div>
       </section>
       
-      {/* PWA Features Section */}
+      {/* Enhanced PWA Features Section */}
       <PWAFeaturesSection />
       
-      {/* Testimonials - same as before */}
+      {/* Testimonials */}
       <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
@@ -548,6 +709,7 @@ const HomePageContent = () => {
                 >
                   Khám phá bản đồ
                 </Link>
+                <SimpleInstallButton className="bg-green-600 hover:bg-green-700" />
               </div>
             </div>
           </div>
@@ -570,3 +732,50 @@ const HomePage = () => {
 };
 
 export default HomePage;
+
+// Add custom CSS for animations
+const customStyles = `
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+  }
+  
+  @keyframes float-delay {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-15px); }
+  }
+  
+  @keyframes spin-slow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  
+  @keyframes spin-reverse {
+    from { transform: rotate(360deg); }
+    to { transform: rotate(0deg); }
+  }
+  
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+  
+  .animate-float-delay {
+    animation: float-delay 3s ease-in-out infinite;
+    animation-delay: 1s;
+  }
+  
+  .animate-spin-slow {
+    animation: spin-slow 20s linear infinite;
+  }
+  
+  .animate-spin-reverse {
+    animation: spin-reverse 25s linear infinite;
+  }
+`;
+
+// Inject styles
+if (typeof document !== 'undefined') {
+  const styleSheet = document.createElement('style');
+  styleSheet.textContent = customStyles;
+  document.head.appendChild(styleSheet);
+}

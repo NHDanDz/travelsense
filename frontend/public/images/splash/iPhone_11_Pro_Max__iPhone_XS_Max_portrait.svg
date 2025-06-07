@@ -1,0 +1,25 @@
+
+    <svg width="414" height="896" viewBox="0 0 414 896" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="splashBg" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+        </linearGradient>
+      </defs>
+      
+      <rect width="414" height="896" fill="url(#splashBg)"/>
+      
+      <!-- Compass icon -->
+      <g transform="translate(157, 398)">
+        <circle cx="50" cy="50" r="40" fill="none" stroke="white" stroke-width="3"/>
+        <path d="M 50 20 L 45 40 L 50 35 L 55 40 Z" fill="white"/>
+        <path d="M 80 50 L 60 45 L 65 50 L 60 55 Z" fill="white"/>
+        <path d="M 50 80 L 55 60 L 50 65 L 45 60 Z" fill="white"/>
+        <path d="M 20 50 L 40 55 L 35 50 L 40 45 Z" fill="white"/>
+        <circle cx="50" cy="50" r="5" fill="#ff4757"/>
+      </g>
+      
+      <!-- App name -->
+      <text x="207" y="528" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="24" font-weight="bold">TravelSense</text>
+    </svg>
+  

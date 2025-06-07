@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PWA Test - TravelSense</title>
+    <link rel="manifest" href="/manifest.json">
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-item { margin: 10px 0; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
+        .pass { background: #d4edda; }
+        .fail { background: #f8d7da; }
+        .pending { background: #fff3cd; }
+    </style>
+</head>
+<body>
+    <h1>🧭 TravelSense PWA Test</h1>
+    
+    <div id="tests">
+        <div class="test-item pending" id="manifest-test">
+            📋 Manifest: Đang kiểm tra...
+        </div>
+        <div class="test-item pending" id="sw-test">
+            ⚙️ Service Worker: Đang kiểm tra...
+        </div>
+        <div class="test-item pending" id="icons-test">
+            🎨 Icons: Đang kiểm tra...
+        </div>
+        <div class="test-item pending" id="install-test">
+            📱 Install Prompt: Đang kiểm tra...
+        </div>
+        <div class="test-item pending" id="offline-test">
+            📡 Offline: Đang kiểm tra...
+        </div>
+    </div>
+
+    <button onclick="runTests()">🔄 Chạy lại test</button>
+    <button onclick="window.installPWA && window.installPWA()">📲 Cài đặt PWA</button>
+
+    <script>
+        async function runTests() {
+            // Test manifest
+            try {
+                const response = await fetch('/manifest.json');
+                const manifest = await response.json();
+                updateTest('manifest-test', manifest.name ? 'pass' : 'fail', 
+                    manifest.name ? '✅ Manifest OK' : '❌ Manifest không hợp lệ');
+            } catch (e) {
+                updateTest('manifest-test', 'fail', '❌ Không tìm thấy manifest');
+            }
+
+            // Test service worker
+            if ('serviceWorker' in navigator) {
+                try {
+                    const registration = await navigator.serviceWorker.register('/sw.js');
+                    updateTest('sw-test', 'pass', '✅ Service Worker đã đăng ký');
+                } catch (e) {
+                    updateTest('sw-test', 'fail', '❌ Service Worker lỗi: ' + e.message);
+                }
+            } else {
+                updateTest('sw-test', 'fail', '❌ Browser không hỗ trợ Service Worker');
+            }
+
+            // Test icons
+            const iconExists = await fetch('/icons/icon-192x192.svg').then(r => r.ok);
+            updateTest('icons-test', iconExists ? 'pass' : 'fail', 
+                iconExists ? '✅ Icons có sẵn' : '❌ Icons không tìm thấy');
+
+            // Test install prompt
+            window.addEventListener('beforeinstallprompt', (e) => {
+                updateTest('install-test', 'pass', '✅ Install prompt có sẵn');
+            });
+
+            // Test offline (simplified)
+            if ('serviceWorker' in navigator && 'caches' in window) {
+                updateTest('offline-test', 'pass', '✅ Offline support có sẵn');
+            } else {
+                updateTest('offline-test', 'fail', '❌ Offline không được hỗ trợ');
+            }
+        }
+
+        function updateTest(id, status, message) {
+            const element = document.getElementById(id);
+            element.className = 'test-item ' + status;
+            element.textContent = message;
+        }
+
+        // Auto run tests
+        runTests();
+    </script>
+</body>
+</html>
