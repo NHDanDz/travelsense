@@ -1,7 +1,16 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-   
+  // Force enable Fast Refresh
+  reactStrictMode: true,
+  
+  // Thêm logging để debug
+  logging: {
+    fetches: {
+      fullUrl: true,
+    },
+  },
+  
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -31,15 +40,15 @@ const nextConfig: NextConfig = {
     ],
   },
   
-  // experimental: {
-  //   turbo: {
-  //     rules: {},
-  //     resolveAlias: {},
-  //   },
-  //   ppr: 'incremental',
-  // },
+  // Cải thiện development experience
+  ...(process.env.NODE_ENV === 'development' && {
+    experimental: {
+      // Force refresh when files change
+      forceSwcTransforms: true,
+    }, 
+  }),
   
-  webpack: (config, { isServer }) => {
+  webpack: (config, { isServer, dev }) => {
     if (!isServer) {
       config.resolve.fallback = { 
         ...config.resolve.fallback,
@@ -49,6 +58,16 @@ const nextConfig: NextConfig = {
         zlib: false
       };
     }
+
+    // Cải thiện hot reload trong development
+    if (dev) {
+      config.watchOptions = {
+        poll: 1000,
+        aggregateTimeout: 300,
+        ignored: ['**/node_modules/**', '**/.git/**', '**/.next/**'],
+      };
+    }
+
     return config;
   },
 };

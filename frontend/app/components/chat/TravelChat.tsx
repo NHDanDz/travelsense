@@ -32,7 +32,7 @@ export const TravelChat: React.FC<TravelChatProps> = ({
   className = ""
 }) => {
   const [internalIsOpen, setInternalIsOpen] = useState(false);
-  const [isMinimized, setIsMinimized] = useState(false); 
+  const [isMinimized, setIsMinimized] = useState(false);
   const [currentSession, setCurrentSession] = useState<ChatSession | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputMessage, setInputMessage] = useState('');
@@ -302,26 +302,17 @@ export const TravelChat: React.FC<TravelChatProps> = ({
     return (
       <button
         onClick={toggleChat}
-        className={`fixed bottom-20 md:bottom-6 right-4 md:right-6 bg-blue-600 hover:bg-blue-700 text-white p-3 md:p-4 rounded-full shadow-lg transition-all duration-300 z-40 ${className}`}
+        className={`fixed bottom-24 right-6 bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-lg transition-all duration-300 z-50 ${className}`}
       >
-        <MessageCircle className="w-5 h-5 md:w-6 md:h-6" />
+        <MessageCircle className="w-6 h-6" />
       </button>
     );
   }
 
   return (
-    <div className={`fixed z-40 transition-all duration-300 ${
-      // Mobile: full screen overlay
-      'md:bottom-6 md:right-6 md:w-96 md:h-[500px] md:rounded-xl md:shadow-2xl ' +
-      // Mobile styles
-      'bottom-0 left-0 right-0 top-0 md:top-auto md:left-auto ' +
-      'w-full h-full md:w-auto md:h-auto ' +
-      'bg-white border-0 md:border md:border-gray-200 ' +
-      'rounded-none md:rounded-xl'
-    } ${isMinimized ? 'md:h-16' : ''} ${className}`}>
-      
-      {/* Header - updated for mobile */}
-      <div className="flex items-center justify-between p-3 md:p-4 border-b border-gray-200 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-none md:rounded-t-xl">
+    <div className={`fixed bottom-6 right-6 bg-white rounded-xl shadow-2xl border border-gray-200 z-50 transition-all duration-300 ${isMinimized ? 'h-16' : 'h-96 md:h-[500px]'} w-80 md:w-96 ${className}`}>
+      {/* Header */}
+      <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-t-xl">
         <div className="flex items-center space-x-2">
           <Bot className="w-5 h-5" />
           <div>
@@ -333,22 +324,12 @@ export const TravelChat: React.FC<TravelChatProps> = ({
         </div>
         
         <div className="flex items-center space-x-1">
-          {/* Hide button for mobile */}
-          <button
-            onClick={toggleChat}
-            className="md:hidden p-1 hover:bg-white/20 rounded transition-colors"
-          >
-            <Minimize2 className="w-4 h-4" />
-          </button>
-                    
-          {/* Desktop minimize button */}
           <button
             onClick={() => setIsMinimized(!isMinimized)}
-            className="hidden md:block p-1 hover:bg-white/20 rounded transition-colors"
+            className="p-1 hover:bg-white/20 rounded transition-colors"
           >
             {isMinimized ? <Maximize2 className="w-4 h-4" /> : <Minimize2 className="w-4 h-4" />}
           </button>
-          
           <button
             onClick={createNewSession}
             className="p-1 hover:bg-white/20 rounded transition-colors"
@@ -373,10 +354,8 @@ export const TravelChat: React.FC<TravelChatProps> = ({
 
       {!isMinimized && (
         <>
-          {/* Messages - updated height for mobile */}
-          <div className={`flex-1 overflow-y-auto p-3 md:p-4 space-y-4 ${
-            'h-[calc(100vh-10rem)] md:h-80 md:h-96'
-          }`}>
+          {/* Messages */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 h-80 md:h-96">
             {isLoading && messages.length === 0 ? (
               <div className="flex items-center justify-center h-full">
                 <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
@@ -388,12 +367,12 @@ export const TravelChat: React.FC<TravelChatProps> = ({
                     key={message.id}
                     className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                   >
-                    <div className={`flex max-w-[85%] md:max-w-[80%] ${message.role === 'user' ? 'flex-row-reverse' : 'flex-row'} items-start space-x-2`}>
-                      <div className={`w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center ${message.role === 'user' ? 'bg-blue-600 ml-2' : 'bg-gray-200 mr-2'}`}>
+                    <div className={`flex max-w-[80%] ${message.role === 'user' ? 'flex-row-reverse' : 'flex-row'} items-start space-x-2`}>
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${message.role === 'user' ? 'bg-blue-600 ml-2' : 'bg-gray-200 mr-2'}`}>
                         {message.role === 'user' ? (
-                          <User className="w-3 h-3 md:w-4 md:h-4 text-white" />
+                          <User className="w-4 h-4 text-white" />
                         ) : (
-                          <Bot className="w-3 h-3 md:w-4 md:h-4 text-gray-600" />
+                          <Bot className="w-4 h-4 text-gray-600" />
                         )}
                       </div>
                       <div
@@ -422,10 +401,10 @@ export const TravelChat: React.FC<TravelChatProps> = ({
                 {isTyping && (
                   <div className="flex justify-start">
                     <div className="flex items-start space-x-2">
-                      <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-gray-200 flex items-center justify-center">
-                        <Bot className="w-3 h-3 md:w-4 md:h-4 text-gray-600" />
+                      <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                        <Bot className="w-4 h-4 text-gray-600" />
                       </div>
-                      <div className="bg-gray-100 px-3 py-2 rounded-lg max-w-[85%] md:max-w-[80%]">
+                      <div className="bg-gray-100 px-3 py-2 rounded-lg max-w-[80%]">
                         {currentResponse ? (
                           <div 
                             className="text-sm text-gray-800 leading-relaxed"
@@ -450,17 +429,17 @@ export const TravelChat: React.FC<TravelChatProps> = ({
                   </div>
                 )}
 
-                {/* Quick actions - updated for mobile */}
+                {/* Quick actions */}
                 {messages.length <= 1 && !isTyping && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-4">
+                  <div className="grid grid-cols-2 gap-2 mt-4">
                     {getQuickActions().map((action, index) => (
                       <button
                         key={index}
                         onClick={action.action}
-                        className="flex items-center space-x-2 p-3 md:p-2 bg-gray-50 hover:bg-gray-100 rounded-lg text-sm text-gray-700 transition-colors"
+                        className="flex items-center space-x-2 p-2 bg-gray-50 hover:bg-gray-100 rounded-lg text-sm text-gray-700 transition-colors"
                       >
                         {action.icon}
-                        <span className="text-sm md:text-xs">{action.label}</span>
+                        <span className="text-xs">{action.label}</span>
                       </button>
                     ))}
                   </div>
@@ -471,8 +450,8 @@ export const TravelChat: React.FC<TravelChatProps> = ({
             )}
           </div>
 
-          {/* Input - updated for mobile */}
-          <div className="p-3 md:p-4 border-t border-gray-200 bg-white">
+          {/* Input */}
+          <div className="p-4 border-t border-gray-200">
             <div className="flex items-center space-x-2">
               <input
                 ref={inputRef}
@@ -480,14 +459,14 @@ export const TravelChat: React.FC<TravelChatProps> = ({
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="Hỏi về địa điểm du lịch..."
-                className="flex-1 px-3 py-2.5 md:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                placeholder="Hỏi về địa điểm du lịch, lịch trình..."
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                 disabled={isTyping || isLoading}
               />
               <button
                 onClick={sendMessage}
                 disabled={!inputMessage.trim() || isTyping || isLoading}
-                className="p-2.5 md:p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 <Send className="w-4 h-4" />
               </button>
@@ -496,5 +475,5 @@ export const TravelChat: React.FC<TravelChatProps> = ({
         </>
       )}
     </div>
-  ); 
+  );
 };

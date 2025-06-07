@@ -3,10 +3,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
 interface Params {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
+
 
 // POST - Khóa tài khoản người dùng
 export async function POST(request: NextRequest, { params }: Params) {

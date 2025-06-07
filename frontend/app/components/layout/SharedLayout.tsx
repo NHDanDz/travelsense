@@ -121,13 +121,13 @@ export const Navbar = () => {
             <>
               <Link 
                 href="/account" 
-                className="font-small text-gray-700 hover:text-blue-500 transition-colors"
+                className="font-medium text-gray-700 hover:text-blue-500 transition-colors"
               >
                 Xin chào, {user.username}
               </Link>
               <button
                 onClick={handleLogout}
-                className="font-small text-red-600 hover:text-red-700 transition-colors"
+                className="font-medium text-red-600 hover:text-red-700 transition-colors"
               >
                 Đăng xuất
               </button>
@@ -392,43 +392,43 @@ export const MobileNavigation = () => {
   };
 
   return (
-    <div className="md:hidden fixed bottom-0 inset-x-0 bg-white border-t border-gray-200 z-30 shadow-lg">
-      <div className="grid grid-cols-5 h-14">
-        <Link
-          href="/dashboard"
-          className="flex flex-col items-center justify-center text-gray-500 hover:text-blue-600 transition-colors active:scale-95"
-        >
-          <Compass className="h-5 w-5" />
-        </Link>
-        <Link
-          href="/dashboard/Map"
-          className="flex flex-col items-center justify-center text-gray-500 hover:text-blue-600 transition-colors active:scale-95"
-        >
-          <MapPin className="h-5 w-5" />
-        </Link>
-        <Link
-          href="/trip-planner"
-          className="flex flex-col items-center justify-center text-gray-500 hover:text-blue-600 transition-colors active:scale-95"
-        >
-          <Calendar className="h-5 w-5" />
-        </Link> 
-        {user ? (
-          <Link
-            href="/account"
-            className="flex flex-col items-center justify-center text-gray-500 hover:text-blue-600 transition-colors active:scale-95"
-          >
-            <User className="h-5 w-5" />
-          </Link>
-        ) : (
-          <Link
-            href="/auth"
-            className="flex flex-col items-center justify-center text-gray-500 hover:text-blue-600 transition-colors active:scale-95"
-          >
-            <User className="h-5 w-5" />
-          </Link>
-        )}
-      </div>
-    </div>
+<div className="md:hidden fixed bottom-0 inset-x-0 bg-white border-t border-gray-200 z-30 shadow-lg">
+  <div className="grid grid-cols-4 h-20"> {/* Tăng từ h-14 lên h-20 */}
+    <Link
+      href="/"
+      className="flex flex-col items-center justify-center text-gray-500 hover:text-blue-600 transition-colors active:scale-95"
+    >
+      <Compass className="h-6 w-6" /> {/* Tăng kích thước icon từ h-5 w-5 lên h-6 w-6 */}
+    </Link>
+    <Link
+      href="/dashboard/Map"
+      className="flex flex-col items-center justify-center text-gray-500 hover:text-blue-600 transition-colors active:scale-95"
+    >
+      <MapPin className="h-6 w-6" />
+    </Link>
+    <Link
+      href="/trip-planner"
+      className="flex flex-col items-center justify-center text-gray-500 hover:text-blue-600 transition-colors active:scale-95"
+    >
+      <Calendar className="h-6 w-6" />
+    </Link> 
+    {user ? (
+      <Link
+        href="/account"
+        className="flex flex-col items-center justify-center text-gray-500 hover:text-blue-600 transition-colors active:scale-95"
+      >
+        <User className="h-6 w-6" />
+      </Link>
+    ) : (
+      <Link
+        href="/auth"
+        className="flex flex-col items-center justify-center text-gray-500 hover:text-blue-600 transition-colors active:scale-95"
+      >
+        <User className="h-6 w-6" />
+      </Link>
+    )}
+  </div>
+</div>
   );
 };
 
