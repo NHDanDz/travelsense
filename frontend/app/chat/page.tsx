@@ -1,11 +1,13 @@
-// app/chat/page.tsx
+// components/chat/TravelChat.tsx
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import Link from 'next/link';
 import { 
-  ArrowLeft, 
+  MessageCircle, 
   Send, 
+  X, 
+  Minimize2, 
+  Maximize2, 
   Bot, 
   User,
   Loader2,
@@ -14,13 +16,27 @@ import {
   MapPin,
   Calendar,
   DollarSign,
-  Users, 
-  Sparkles
+  Users,
+  AlertCircle,
+  CheckCircle,
+  Wifi,
+  WifiOff
 } from 'lucide-react';
 import { ChatService, ChatMessage, ChatSession } from '@/services/chatService';
-import SharedLayout from '@/app/components/layout/SharedLayout';
 
-export default function ChatPage() {
+interface TravelChatProps {
+  isOpen?: boolean;
+  onToggle?: () => void;
+  className?: string;
+}
+
+export const TravelChat: React.FC<TravelChatProps> = ({ 
+  isOpen: externalIsOpen, 
+  onToggle,
+  className = ""
+}) => {
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
   const [currentSession, setCurrentSession] = useState<ChatSession | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputMessage, setInputMessage] = useState('');
@@ -28,48 +44,53 @@ export default function ChatPage() {
   const [isTyping, setIsTyping] = useState(false);
   const [currentResponse, setCurrentResponse] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [sessions, setSessions] = useState<ChatSession[]>([]);
+  const [apiStatus, setApiStatus] = useState<'checking' | 'connected' | 'error'>('checking');
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  
+  // Determine if chat is open based on external prop or internal state
+  const isOpen = externalIsOpen !== undefined ? externalIsOpen : internalIsOpen;
+  const toggleChat = onToggle || (() => setInternalIsOpen(!internalIsOpen));
 
   // Scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, currentResponse]);
 
-  // Load sessions and initialize chat on mount
+  // Load session on mount
   useEffect(() => {
-    // Migrate old sessions to user-specific format
-    ChatService.migrateToUserSpecificSessions();
-    loadSessions();
-    initializeChat();
-  }, []);
+    if (isOpen && !currentSession) {
+      testApiConnection();
+      // Migrate old sessions to user-specific format
+      ChatService.migrateToUserSpecificSessions();
+      initializeChat();
+    }
+  }, [isOpen]);
 
   // Reset chat when user changes
   useEffect(() => {
     const handleUserChange = () => {
-      // Clear current state
+      // Clear current session and reload
       setCurrentSession(null);
       setMessages([]);
       setCurrentResponse('');
       setError(null);
-      setSessions([]);
       
-      // Reload for new user
-      ChatService.migrateToUserSpecificSessions();
-      loadSessions();
-      initializeChat();
+      if (isOpen) {
+        ChatService.migrateToUserSpecificSessions();
+        initializeChat();
+      }
     };
 
-    // Listen for storage changes (when user logs in/out)
+    // Listen for storage changes (when user logs in/out in another tab)
     window.addEventListener('storage', (e) => {
       if (e.key === 'user') {
         handleUserChange();
       }
     });
 
-    // Check for user changes periodically
+    // Check for user changes on component mount/update
     const checkUserChange = () => {
       const currentUser = localStorage.getItem('user');
       const userId = currentUser ? JSON.parse(currentUser).id || JSON.parse(currentUser).username : null;
@@ -81,25 +102,39 @@ export default function ChatPage() {
       }
     };
 
-    const interval = setInterval(checkUserChange, 1000);
+    checkUserChange();
+    const interval = setInterval(checkUserChange, 1000); // Check every second
 
     return () => {
       window.removeEventListener('storage', handleUserChange);
       clearInterval(interval);
     };
-  }, []);
+  }, [isOpen]);
 
-  // Auto-resize textarea
+  // Focus input when chat opens
   useEffect(() => {
-    if (inputRef.current) {
-      inputRef.current.style.height = 'auto';
-      inputRef.current.style.height = `${Math.min(inputRef.current.scrollHeight, 120)}px`;
+    if (isOpen && !isMinimized) {
+      setTimeout(() => inputRef.current?.focus(), 100);
     }
-  }, [inputMessage]);
+  }, [isOpen, isMinimized]);
 
-  const loadSessions = () => {
-    const localSessions = ChatService.getLocalSessions();
-    setSessions(localSessions);
+  // Test API connection
+  const testApiConnection = async () => {
+    try {
+      setApiStatus('checking');
+      const isConnected = await ChatService.testConnection();
+      setApiStatus(isConnected ? 'connected' : 'error');
+      
+      if (!isConnected) {
+        setError('Không thể kết nối đến API chat.');
+      } else {
+        setError(null);
+      }
+    } catch (error) {
+      console.error('API connection test failed:', error);
+      setApiStatus('error');
+      setError('Không thể kết nối đến API chat.');
+    }
   };
 
   const initializeChat = async () => {
@@ -108,8 +143,8 @@ export default function ChatPage() {
       setError(null);
       
       // Try to load last session from local storage
-      const localSessions = ChatService.getLocalSessions();
-      const lastSession = localSessions[localSessions.length - 1];
+      const sessions = ChatService.getLocalSessions();
+      const lastSession = sessions[sessions.length - 1];
       
       if (lastSession && lastSession.messages.length > 0) {
         setCurrentSession(lastSession);
@@ -119,7 +154,7 @@ export default function ChatPage() {
       }
     } catch (error) {
       console.error('Error initializing chat:', error);
-      setError('Không thể khởi tạo chat. Vui lòng thử lại.');
+      setError('Không thể khởi tạo chat.');
     } finally {
       setIsLoading(false);
     }
@@ -129,6 +164,14 @@ export default function ChatPage() {
     try {
       setIsLoading(true);
       setError(null);
+      
+      // Test connection first
+      if (apiStatus === 'error') {
+        await testApiConnection();
+        if (apiStatus === 'error') {
+          throw new Error('API connection failed');
+        }
+      }
       
       const sessionId = await ChatService.createNewSession();
       const newSession: ChatSession = {
@@ -148,26 +191,18 @@ export default function ChatPage() {
 Tôi có thể giúp bạn:
 
 **🗺️ Lên kế hoạch chuyến đi**
-- Gợi ý lịch trình chi tiết
-- Tìm kiếm địa điểm du lịch
-- Đặt lịch theo sở thích
+• Gợi ý lịch trình chi tiết
+• Tìm kiếm địa điểm du lịch
 
 **💰 Quản lý ngân sách**
-- Ước tính chi phí chuyến đi
-- Gợi ý tiết kiệm chi phí
-- So sánh giá cả
+• Ước tính chi phí chuyến đi
+• Gợi ý tiết kiệm chi phí
 
 **🌤️ Thông tin hữu ích**
-- Thời tiết địa phương
-- Văn hóa và phong tục
-- Giao thông và di chuyển
+• Thời tiết địa phương
+• Văn hóa và phong tục
 
-**👥 Tùy chỉnh theo nhóm**
-- Du lịch gia đình
-- Du lịch cặp đôi
-- Du lịch một mình
-
-Hãy bắt đầu bằng cách cho tôi biết bạn muốn đi đâu nhé! 🚀`,
+Bạn muốn đi du lịch ở đâu? 🚀`,
         timestamp: new Date()
       };
       
@@ -178,11 +213,14 @@ Hãy bắt đầu bằng cách cho tôi biết bạn muốn đi đâu nhé! 🚀
       const updatedSession = { ...newSession, messages: updatedMessages };
       ChatService.saveSessionToLocal(updatedSession);
       setCurrentSession(updatedSession);
-      loadSessions();
       
     } catch (error) {
       console.error('Error creating new session:', error);
-      setError('Không thể tạo phiên chat mới. Vui lòng thử lại.');
+      if (error instanceof Error && error.message === 'API connection failed') {
+        setError('Không thể kết nối đến API.');
+      } else {
+        setError('Không thể tạo phiên chat mới.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -190,6 +228,12 @@ Hãy bắt đầu bằng cách cho tôi biết bạn muốn đi đâu nhé! 🚀
 
   const sendMessage = async () => {
     if (!inputMessage.trim() || !currentSession || isTyping) return;
+
+    // Check API status
+    if (apiStatus === 'error') {
+      setError('API không khả dụng. Vui lòng thử lại sau.');
+      return;
+    }
 
     const userMessage: ChatMessage = {
       id: `msg_${Date.now()}`,
@@ -210,7 +254,6 @@ Hãy bắt đầu bằng cách cho tôi biết bạn muốn đi đâu nhé! 🚀
     const updatedSession = { ...currentSession, messages: updatedMessages };
     setCurrentSession(updatedSession);
     ChatService.saveSessionToLocal(updatedSession);
-    loadSessions();
 
     try {
       let fullResponse = '';
@@ -244,7 +287,6 @@ Hãy bắt đầu bằng cách cho tôi biết bạn muốn đi đâu nhé! 🚀
           const finalSession = { ...currentSession, messages: finalMessages };
           setCurrentSession(finalSession);
           ChatService.saveSessionToLocal(finalSession);
-          loadSessions();
           
           // Save assistant message to backend
           ChatService.saveMessage(currentSession.session_id, 'assistant', fullResponse);
@@ -253,14 +295,21 @@ Hãy bắt đầu bằng cách cho tôi biết bạn muốn đi đâu nhé! 🚀
         (error: Error) => {
           setIsTyping(false);
           setCurrentResponse('');
-          setError('Có lỗi xảy ra khi gửi tin nhắn. Vui lòng thử lại.');
+          
+          // Check if it's a connection error
+          if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+            setError('Mất kết nối mạng.');
+            setApiStatus('error');
+          } else {
+            setError('Có lỗi xảy ra khi gửi tin nhắn.');
+          }
           console.error('Error in sendMessage:', error);
         }
       );
     } catch (error) {
       setIsTyping(false);
       setCurrentResponse('');
-      setError('Có lỗi xảy ra khi gửi tin nhắn. Vui lòng thử lại.');
+      setError('Có lỗi xảy ra khi gửi tin nhắn.');
       console.error('Error in sendMessage:', error);
     }
   };
@@ -272,13 +321,6 @@ Hãy bắt đầu bằng cách cho tôi biết bạn muốn đi đâu nhé! 🚀
     }
   };
 
-  const switchSession = (session: ChatSession) => {
-    setCurrentSession(session);
-    setMessages(session.messages);
-    setCurrentResponse('');
-    setError(null);
-  };
-
   const clearChat = () => {
     setMessages([]);
     setCurrentResponse('');
@@ -287,14 +329,7 @@ Hãy bắt đầu bằng cách cho tôi biết bạn muốn đi đâu nhé! 🚀
       const clearedSession = { ...currentSession, messages: [] };
       setCurrentSession(clearedSession);
       ChatService.saveSessionToLocal(clearedSession);
-      loadSessions();
     }
-  };
-
-  const clearAllSessions = () => {
-    ChatService.clearLocalSessions();
-    setSessions([]);
-    createNewSession();
   };
 
   const formatMessage = (content: string) => {
@@ -302,275 +337,280 @@ Hãy bắt đầu bằng cách cho tôi biết bạn muốn đi đâu nhé! 🚀
     return content
       .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold">$1</strong>')
       .replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')
-      .replace(/🌟|⭐|✨|🚀|🗺️|💰|🌤️|👥/g, '<span class="text-lg">$&</span>')
+      .replace(/🌟|⭐|✨|🚀|🗺️|💰|🌤️|👥/g, '<span class="text-base">$&</span>')
       .replace(/\n\n/g, '<br/><br/>')
       .replace(/\n/g, '<br/>')
-      .replace(/• (.*?)(<br\/>|$)/g, '<div class="ml-4 mb-1">• $1</div>');
+      .replace(/• (.*?)(<br\/>|$)/g, '<div class="ml-3 mb-1">• $1</div>');
   };
 
   const getQuickActions = () => [
     {
-      icon: <MapPin className="w-5 h-5" />,
-      label: "Tìm địa điểm nổi tiếng",
-      message: "Gợi ý cho tôi những địa điểm du lịch nổi tiếng nhất ở Việt Nam"
+      icon: <MapPin className="w-4 h-4" />,
+      label: "Tìm địa điểm",
+      action: () => setInputMessage("Gợi ý cho tôi những địa điểm du lịch nổi tiếng ở Việt Nam")
     },
     {
-      icon: <Calendar className="w-5 h-5" />,
-      label: "Lập lịch trình 3 ngày",
-      message: "Giúp tôi lập lịch trình du lịch 3 ngày 2 đêm ở Đà Nẵng"
+      icon: <Calendar className="w-4 h-4" />,
+      label: "Lập lịch trình",
+      action: () => setInputMessage("Giúp tôi lập lịch trình du lịch 3 ngày 2 đêm")
     },
     {
-      icon: <DollarSign className="w-5 h-5" />,
+      icon: <DollarSign className="w-4 h-4" />,
       label: "Ước tính chi phí",
-      message: "Ước tính chi phí cho chuyến đi du lịch Phú Quốc 4 ngày cho 2 người"
+      action: () => setInputMessage("Ước tính chi phí cho chuyến đi du lịch")
     },
     {
-      icon: <Users className="w-5 h-5" />,
+      icon: <Users className="w-4 h-4" />,
       label: "Du lịch gia đình",
-      message: "Gợi ý địa điểm và hoạt động phù hợp cho gia đình có trẻ em ở Hà Nội"
+      action: () => setInputMessage("Gợi ý địa điểm phù hợp cho gia đình có trẻ em")
     }
   ];
 
+  // Chat button when closed
+  if (!isOpen) {
+    return (
+      <div className="fixed bottom-24 right-6 z-50">
+        <button
+          onClick={toggleChat}
+          className={`bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-lg transition-all duration-300 relative ${className}`}
+        >
+          <MessageCircle className="w-6 h-6" />
+          {/* Connection indicator */}
+          <div className="absolute -top-1 -right-1">
+            {apiStatus === 'connected' && (
+              <div className="w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
+            )}
+            {apiStatus === 'error' && (
+              <div className="w-3 h-3 bg-red-500 rounded-full border-2 border-white"></div>
+            )}
+            {apiStatus === 'checking' && (
+              <div className="w-3 h-3 bg-yellow-500 rounded-full border-2 border-white animate-pulse"></div>
+            )}
+          </div>
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <SharedLayout>
-      <div className="min-h-screen bg-gray-50">
-        {/* Header */}
-        <div className="bg-white border-b border-gray-200 sticky top-16 z-40">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <Link 
-                  href="/dashboard"
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                >
-                  <ArrowLeft className="w-5 h-5 text-gray-600" />
-                </Link>
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                    <Bot className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <h1 className="text-xl font-bold text-gray-900">Trợ lý Du lịch AI</h1>
-                    <p className="text-sm text-gray-500">
-                      {isTyping ? 'Đang trả lời...' : 'Sẵn sàng hỗ trợ bạn'}
-                    </p>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={createNewSession}
-                  className="flex items-center space-x-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
-                  disabled={isLoading}
-                >
-                  <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-                  <span className="hidden sm:inline">Chat mới</span>
-                </button>
-                <button
-                  onClick={clearChat}
-                  className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-                  title="Xóa chat hiện tại"
-                >
-                  <Trash2 className="w-5 h-5" />
-                </button>
+    <div className={`fixed bottom-6 right-6 bg-white rounded-xl shadow-2xl border border-gray-200 z-50 transition-all duration-300 ${isMinimized ? 'h-16' : 'h-96 md:h-[500px]'} w-80 md:w-96 ${className}`}>
+      {/* Header */}
+      <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-t-xl">
+        <div className="flex items-center space-x-2">
+          <Bot className="w-5 h-5" />
+          <div>
+            <h3 className="font-semibold text-sm">Trợ lý Du lịch AI</h3>
+            <div className="flex items-center space-x-2">
+              <p className="text-xs opacity-90">
+                {isTyping ? 'Đang trả lời...' : 'Sẵn sàng hỗ trợ'}
+              </p>
+              {/* API Status Indicator */}
+              <div className="flex items-center space-x-1">
+                {apiStatus === 'checking' && (
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                )}
+                {apiStatus === 'connected' && (
+                  <Wifi className="w-3 h-3" />
+                )}
+                {apiStatus === 'error' && (
+                  <WifiOff className="w-3 h-3" />
+                )}
               </div>
             </div>
           </div>
         </div>
-
-        <div className="max-w-7xl mx-auto flex h-[calc(100vh-8rem)]">
-          {/* Sidebar - Chat History */}
-          <div className="hidden lg:block w-64 bg-white border-r border-gray-200 overflow-y-auto">
-            <div className="p-4">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="font-semibold text-gray-900">Lịch sử chat</h2>
-                <button
-                  onClick={clearAllSessions}
-                  className="text-xs text-gray-500 hover:text-red-600 transition-colors"
-                >
-                  Xóa tất cả
-                </button>
-              </div>
-              <div className="space-y-2">
-                {sessions.map((session, index) => (
-                  <button
-                    key={session.session_id}
-                    onClick={() => switchSession(session)}
-                    className={`w-full text-left p-3 rounded-lg transition-colors ${
-                      currentSession?.session_id === session.session_id
-                        ? 'bg-blue-50 border border-blue-200'
-                        : 'hover:bg-gray-50'
-                    }`}
-                  >
-                    <div className="text-sm font-medium text-gray-900 truncate">
-                      Chat #{sessions.length - index}
-                    </div>
-                    <div className="text-xs text-gray-500 mt-1">
-                      {session.messages.length} tin nhắn
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Main Chat Area */}
-          <div className="flex-1 flex flex-col bg-white">
-            {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-6">
-              {isLoading && messages.length === 0 ? (
-                <div className="flex items-center justify-center h-full">
-                  <div className="text-center">
-                    <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
-                    <p className="text-gray-500">Đang khởi tạo chat...</p>
-                  </div>
-                </div>
-              ) : (
-                <>
-                  {messages.map((message) => (
-                    <div
-                      key={message.id}
-                      className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                    >
-                      <div className={`flex max-w-4xl ${message.role === 'user' ? 'flex-row-reverse' : 'flex-row'} items-start space-x-4`}>
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
-                          message.role === 'user' 
-                            ? 'bg-blue-600 ml-4' 
-                            : 'bg-gradient-to-br from-purple-500 to-blue-600 mr-4'
-                        }`}>
-                          {message.role === 'user' ? (
-                            <User className="w-5 h-5 text-white" />
-                          ) : (
-                            <Bot className="w-5 h-5 text-white" />
-                          )}
-                        </div>
-                        <div
-                          className={`px-6 py-4 rounded-2xl shadow-sm ${
-                            message.role === 'user'
-                              ? 'bg-blue-600 text-white'
-                              : 'bg-gray-50 text-gray-800 border border-gray-200'
-                          }`}
-                        >
-                          <div 
-                            className="text-sm leading-relaxed"
-                            dangerouslySetInnerHTML={{ __html: formatMessage(message.content) }}
-                          />
-                          <div className={`text-xs mt-2 ${
-                            message.role === 'user' ? 'text-blue-100' : 'text-gray-500'
-                          }`}>
-                            {new Date(message.timestamp).toLocaleTimeString('vi-VN', { 
-                              hour: '2-digit', 
-                              minute: '2-digit' 
-                            })}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-
-                  {/* Typing indicator */}
-                  {isTyping && (
-                    <div className="flex justify-start">
-                      <div className="flex items-start space-x-4">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center flex-shrink-0">
-                          <Bot className="w-5 h-5 text-white" />
-                        </div>
-                        <div className="bg-gray-50 px-6 py-4 rounded-2xl shadow-sm border border-gray-200 max-w-4xl">
-                          {currentResponse ? (
-                            <div 
-                              className="text-sm text-gray-800 leading-relaxed"
-                              dangerouslySetInnerHTML={{ __html: formatMessage(currentResponse) }}
-                            />
-                          ) : (
-                            <div className="flex items-center space-x-2">
-                              <div className="flex space-x-1">
-                                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                              </div>
-                              <span className="text-sm text-gray-500 ml-2">AI đang suy nghĩ...</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Error message */}
-                  {error && (
-                    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-                      <div className="flex items-center space-x-2">
-                        <div className="w-5 h-5 bg-red-200 rounded-full flex items-center justify-center">
-                          <span className="text-red-600 text-xs">!</span>
-                        </div>
-                        <span className="text-sm">{error}</span>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Quick actions */}
-                  {messages.length <= 1 && !isTyping && (
-                    <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 border border-blue-100">
-                      <div className="flex items-center space-x-2 mb-4">
-                        <Sparkles className="w-5 h-5 text-blue-600" />
-                        <h3 className="font-semibold text-gray-900">Gợi ý câu hỏi</h3>
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {getQuickActions().map((action, index) => (
-                          <button
-                            key={index}
-                            onClick={() => setInputMessage(action.message)}
-                            className="flex items-center space-x-3 p-4 bg-white hover:bg-gray-50 rounded-lg text-left border border-gray-200 transition-colors group"
-                          >
-                            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center group-hover:bg-blue-200 transition-colors">
-                              {action.icon}
-                            </div>
-                            <span className="text-sm font-medium text-gray-700">{action.label}</span>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  <div ref={messagesEndRef} />
-                </>
-              )}
-            </div>
-
-            {/* Input Area */}
-            <div className="border-t border-gray-200 p-4 bg-gray-50">
-              <div className="max-w-4xl mx-auto">
-                <div className="flex items-end space-x-4">
-                  <div className="flex-1 relative">
-                    <textarea
-                      ref={inputRef}
-                      value={inputMessage}
-                      onChange={(e) => setInputMessage(e.target.value)}
-                      onKeyPress={handleKeyPress}
-                      placeholder="Hỏi về địa điểm du lịch, lịch trình, ngân sách..."
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none text-sm bg-white"
-                      disabled={isTyping || isLoading}
-                      rows={1}
-                      style={{ maxHeight: '120px' }}
-                    />
-                  </div>
-                  <button
-                    onClick={sendMessage}
-                    disabled={!inputMessage.trim() || isTyping || isLoading}
-                    className="p-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex-shrink-0"
-                  >
-                    <Send className="w-5 h-5" />
-                  </button>
-                </div>
-                <div className="text-xs text-gray-500 mt-2 text-center">
-                  Nhấn Enter để gửi, Shift + Enter để xuống dòng
-                </div>
-              </div>
-            </div>
-          </div>
+        
+        <div className="flex items-center space-x-1">
+          <button
+            onClick={testApiConnection}
+            className="p-1 hover:bg-white/20 rounded transition-colors"
+            disabled={apiStatus === 'checking'}
+            title="Test kết nối API"
+          >
+            {apiStatus === 'checking' ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <CheckCircle className="w-4 h-4" />
+            )}
+          </button>
+          <button
+            onClick={() => setIsMinimized(!isMinimized)}
+            className="p-1 hover:bg-white/20 rounded transition-colors"
+          >
+            {isMinimized ? <Maximize2 className="w-4 h-4" /> : <Minimize2 className="w-4 h-4" />}
+          </button>
+          <button
+            onClick={createNewSession}
+            className="p-1 hover:bg-white/20 rounded transition-colors"
+            disabled={isLoading}
+          >
+            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+          </button>
+          <button
+            onClick={clearChat}
+            className="p-1 hover:bg-white/20 rounded transition-colors"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+          <button
+            onClick={toggleChat}
+            className="p-1 hover:bg-white/20 rounded transition-colors"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
       </div>
-    </SharedLayout>
+
+      {!isMinimized && (
+        <>
+          {/* Messages */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 h-80 md:h-96">
+            {isLoading && messages.length === 0 ? (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center">
+                  <Loader2 className="w-6 h-6 animate-spin text-blue-600 mx-auto mb-2" />
+                  <p className="text-xs text-gray-500">Đang khởi tạo chat...</p>
+                </div>
+              </div>
+            ) : (
+              <>
+                {messages.map((message) => (
+                  <div
+                    key={message.id}
+                    className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                  >
+                    <div className={`flex max-w-[85%] ${message.role === 'user' ? 'flex-row-reverse' : 'flex-row'} items-start space-x-2`}>
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                        message.role === 'user' 
+                          ? 'bg-blue-600 ml-2' 
+                          : 'bg-gradient-to-br from-purple-500 to-blue-600 mr-2'
+                      }`}>
+                        {message.role === 'user' ? (
+                          <User className="w-4 h-4 text-white" />
+                        ) : (
+                          <Bot className="w-4 h-4 text-white" />
+                        )}
+                      </div>
+                      <div
+                        className={`px-3 py-2 rounded-lg shadow-sm ${
+                          message.role === 'user'
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-gray-50 text-gray-800 border border-gray-200'
+                        }`}
+                      >
+                        <div 
+                          className="text-sm leading-relaxed"
+                          dangerouslySetInnerHTML={{ __html: formatMessage(message.content) }}
+                        />
+                        <div className={`text-xs mt-1 ${message.role === 'user' ? 'text-blue-100' : 'text-gray-500'}`}>
+                          {new Date(message.timestamp).toLocaleTimeString('vi-VN', { 
+                            hour: '2-digit', 
+                            minute: '2-digit' 
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                {/* Typing indicator */}
+                {isTyping && (
+                  <div className="flex justify-start">
+                    <div className="flex items-start space-x-2">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center flex-shrink-0">
+                        <Bot className="w-4 h-4 text-white" />
+                      </div>
+                      <div className="bg-gray-50 px-3 py-2 rounded-lg shadow-sm border border-gray-200 max-w-[85%]">
+                        {currentResponse ? (
+                          <div 
+                            className="text-sm text-gray-800 leading-relaxed"
+                            dangerouslySetInnerHTML={{ __html: formatMessage(currentResponse) }}
+                          />
+                        ) : (
+                          <div className="flex items-center space-x-2">
+                            <div className="flex space-x-1">
+                              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                            </div>
+                            <span className="text-xs text-gray-500">AI đang suy nghĩ...</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Error message */}
+                {error && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-lg">
+                    <div className="flex items-center space-x-2">
+                      <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0" />
+                      <span className="text-xs">{error}</span>
+                      {apiStatus === 'error' && (
+                        <button
+                          onClick={testApiConnection}
+                          className="ml-auto text-xs bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700 transition-colors"
+                        >
+                          Thử lại
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Quick actions */}
+                {messages.length <= 1 && !isTyping && (
+                  <div className="grid grid-cols-2 gap-2 mt-4">
+                    {getQuickActions().map((action, index) => (
+                      <button
+                        key={index}
+                        onClick={action.action}
+                        className="flex items-center space-x-2 p-2 bg-gradient-to-r from-blue-50 to-purple-50 hover:from-blue-100 hover:to-purple-100 rounded-lg text-sm text-gray-700 transition-colors border border-blue-100"
+                      >
+                        <div className="w-6 h-6 bg-blue-100 rounded flex items-center justify-center">
+                          {action.icon}
+                        </div>
+                        <span className="text-xs font-medium">{action.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                <div ref={messagesEndRef} />
+              </>
+            )}
+          </div>
+
+          {/* Input */}
+          <div className="p-4 border-t border-gray-200 bg-gray-50 rounded-b-xl">
+            <div className="flex items-center space-x-2">
+              <input
+                ref={inputRef}
+                type="text"
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="Hỏi về địa điểm du lịch, lịch trình..."
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white"
+                disabled={isTyping || isLoading || apiStatus === 'error'}
+              />
+              <button
+                onClick={sendMessage}
+                disabled={!inputMessage.trim() || isTyping || isLoading || apiStatus === 'error'}
+                className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <Send className="w-4 h-4" />
+              </button>
+            </div>
+            {apiStatus === 'error' && (
+              <div className="text-xs text-red-500 mt-1 text-center">
+                API không khả dụng
+              </div>
+            )}
+          </div>
+        </>
+      )}
+    </div>
   );
-}
+};

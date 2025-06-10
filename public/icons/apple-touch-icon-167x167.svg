@@ -1,0 +1,28 @@
+<svg width="167" height="167" viewBox="0 0 167 167" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="appleBg167" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4f46e5;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#06b6d4;stop-opacity:1" />
+    </linearGradient>
+    
+    <filter id="appleShadow167">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+  
+  <!-- iOS rounded rectangle -->
+  <rect width="167" height="167" rx="33.4" fill="url(#appleBg167)" filter="url(#appleShadow167)"/>
+  
+  <!-- Content -->
+  <g transform="translate(16.7, 16.7) scale(0.8)">
+    <circle cx="83.5" cy="70.975" r="32.47222222222222" fill="rgba(255,255,255,0.2)"/>
+    
+    <path d="M 83.5 60.30555555555556 C 69.58333333333333 60.30555555555556 60.30555555555556 69.58333333333333 60.30555555555556 83.5 C 60.30555555555556 92.77777777777777 83.5 115.97222222222223 83.5 115.97222222222223 C 83.5 115.97222222222223 106.69444444444444 92.77777777777777 106.69444444444444 83.5 C 106.69444444444444 69.58333333333333 97.41666666666667 60.30555555555556 83.5 60.30555555555556 Z" 
+          fill="#ef4444" 
+          stroke="white" 
+          stroke-width="1.8555555555555556"/>
+    
+    <circle cx="83.5" cy="83.5" r="11.133333333333333" fill="white"/>
+    <circle cx="83.5" cy="83.5" r="7.4222222222222225" fill="#dc2626"/>
+  </g>
+</svg>

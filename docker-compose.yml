@@ -1,8 +1,8 @@
-# docker-compose.yml - Chỉ backend + frontend (database chạy riêng)
+# docker-compose.yml - Full stack setup
 version: '3.8'
 
 services:
-  # Backend API
+  # Backend API (Python FastAPI)
   backend:
     build:
       context: ./backend
@@ -12,12 +12,15 @@ services:
       - "8089:8089"
     env_file:
       - ./backend/.env
+    environment:
+      - PORT=8089
+      - HOST=0.0.0.0
     volumes:
       - ./backend/logs:/app/logs
-      # Nếu dùng SQLite, mount file database
+      # Mount SQLite database if using SQLite
       - ./backend/DB.sqlite:/app/DB.sqlite
     extra_hosts:
-      # Cho phép container truy cập host (database trên máy host)
+      # Allow container to access host services
       - "host.docker.internal:host-gateway"
     restart: unless-stopped
     healthcheck:
@@ -25,8 +28,11 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 40s
+    networks:
+      - travelsense_network
 
-  # Frontend
+  # Frontend (Next.js)
   frontend:
     build:
       context: ./frontend
@@ -37,19 +43,23 @@ services:
     env_file:
       - ./frontend/.env
     environment:
+      - NODE_ENV=production
       - NEXT_PUBLIC_API_URL=http://localhost:8089
+      - PORT=3000
+      - HOSTNAME=0.0.0.0
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000"]
       interval: 30s
       timeout: 10s
       retries: 3
-# External services (chạy bên ngoài Docker):
-# - Database (PostgreSQL/MySQL/SQLite)
-# - Redis (nếu có)
-# - Nginx (nếu cần)
+      start_period: 60s
+    networks:
+      - travelsense_network
+
   # Nginx Reverse Proxy (optional)
   nginx:
     image: nginx:alpine
@@ -58,19 +68,25 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf
-      - ./nginx/html:/usr/share/nginx/html
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/html:/usr/share/nginx/html:ro
     depends_on:
-      - frontend
-      - backend
+      frontend:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
     restart: unless-stopped
+    networks:
+      - travelsense_network
 
-volumes:
-  postgres_data:
-    driver: local
-  redis_data:
-    driver: local
-
+# Networks
 networks:
-  default:
+  travelsense_network:
     driver: bridge
+
+# Volumes for persistent data
+volumes:
+  backend_logs:
+    driver: local
+  sqlite_data:
+    driver: local

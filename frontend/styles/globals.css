@@ -786,3 +786,50 @@ button:focus-visible,
     image-rendering: crisp-edges;
   }
 }
+@media (display-mode: standalone) {
+  body {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  /* Fix cho header */
+  header,
+  .header-component {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: white;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  
+  /* Fix cho navigation */
+  nav {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+}
+
+/* iOS specific fixes */
+@supports (padding: max(0px)) {
+  @media (display-mode: standalone) {
+    .ios-pwa-header {
+      padding-top: max(1rem, env(safe-area-inset-top));
+    }
+  }
+}
+/* PWA Safe Area - Nhẹ hơn */
+@media (display-mode: standalone) {
+  .main-header, .header, nav:first-child {
+    padding-top: env(safe-area-inset-top) !important;
+  }
+  
+  /* Chỉ fix cho fixed/sticky elements */
+  .fixed.top-0, .sticky.top-0 {
+    top: env(safe-area-inset-top) !important;
+  }
+  
+  /* Bỏ padding cho container */
+  .container:first-child, main:first-child {
+    padding-top: 0 !important;
+  }
+}

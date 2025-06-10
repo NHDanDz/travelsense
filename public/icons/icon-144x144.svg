@@ -1,0 +1,32 @@
+<svg width="144" height="144" viewBox="0 0 144 144" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="maskableBg144" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4f46e5;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#06b6d4;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="maskablePin144" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ef4444;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#dc2626;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Safe area background (full bleed) -->
+  <rect width="144" height="144" fill="url(#maskableBg144)"/>
+  
+  <!-- Content in safe area (80% of size) -->
+  <g transform="translate(14.4, 14.4) scale(0.8)">
+    <!-- Globe -->
+    <circle cx="72" cy="64.8" r="14.0625" fill="rgba(255,255,255,0.2)" stroke="rgba(255,255,255,0.3)" stroke-width="0.5625"/>
+    
+    <!-- Map pin -->
+    <path d="M 72 60.75 C 66.375 60.75 62.15625 64.96875 62.15625 70.59375 C 62.15625 76.21875 72 86.0625 72 86.0625 C 72 86.0625 81.84375 76.21875 81.84375 70.59375 C 81.84375 64.96875 77.625 60.75 72 60.75 Z" 
+          fill="url(#maskablePin144)" 
+          stroke="white" 
+          stroke-width="0.5625"/>
+    
+    <circle cx="72" cy="70.59375" r="4.21875" fill="white"/>
+    <circle cx="72" cy="70.59375" r="2.8125" fill="#ef4444"/>
+  </g>
+</svg>

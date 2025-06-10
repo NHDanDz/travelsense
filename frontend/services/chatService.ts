@@ -12,13 +12,13 @@ export interface ChatSession {
 }
 
 export class ChatService {
-  private static readonly BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://127.0.0.1:8089';
+  private static readonly API_BASE_URL = '/api/ai/chat'; // Thay đổi để gọi frontend API
   private static lastKnownUserId: string | null = null;
   
   // Tạo session chat mới
   static async createNewSession(): Promise<string> {
     try {
-      const response = await fetch(`${this.BACKEND_URL}/api/v1/chat/_new_chat`, {
+      const response = await fetch(`${this.API_BASE_URL}?action=new_session`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -26,10 +26,16 @@ export class ChatService {
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to create chat session: ${response.status}`);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(`Failed to create chat session: ${response.status} - ${errorData.message || 'Unknown error'}`);
       }
 
       const data = await response.json();
+      
+      if (!data.success || !data.data?.session_id) {
+        throw new Error('Invalid response format from chat API');
+      }
+
       return data.data.session_id;
     } catch (error) {
       console.error('Error creating chat session:', error);
@@ -37,7 +43,7 @@ export class ChatService {
     }
   }
 
-  // Gửi message và nhận streaming response từ Gemini
+  // Gửi message và nhận streaming response
   static async sendMessage(
     sessionId: string, 
     content: string,
@@ -46,22 +52,63 @@ export class ChatService {
     onError: (error: Error) => void
   ): Promise<void> {
     try {
-      const response = await fetch(`${this.BACKEND_URL}/api/v1/chat/_chat`, {
+      const response = await fetch(`${this.API_BASE_URL}?action=send_message`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           session_id: sessionId,
-          content: content
+          content: content,
+          metadata: {
+            timestamp: new Date().toISOString(),
+            user_agent: navigator.userAgent
+          }
         }),
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to send message: ${response.status}`);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(`Failed to send message: ${response.status} - ${errorData.message || 'Unknown error'}`);
       }
 
-      // Handle streaming response từ Gemini
+      // Kiểm tra content type để xử lý streaming hoặc JSON
+      const contentType = response.headers.get('content-type');
+      
+      if (contentType?.includes('text/stream') || contentType?.includes('text/plain')) {
+        // Handle streaming response
+        await this.handleStreamingResponse(response, onChunk, onComplete, onError);
+      } else {
+        // Handle JSON response
+        const data = await response.json();
+        if (data.success && data.data) {
+          // Nếu backend trả về response đầy đủ (không streaming)
+          if (typeof data.data === 'string') {
+            onChunk(data.data);
+          } else if (data.data.response) {
+            onChunk(data.data.response);
+          } else if (data.data.content) {
+            onChunk(data.data.content);
+          }
+          onComplete();
+        } else {
+          throw new Error(data.message || 'Invalid response from backend');
+        }
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+      onError(error instanceof Error ? error : new Error('Unknown error'));
+    }
+  }
+
+  // Xử lý streaming response
+  private static async handleStreamingResponse(
+    response: Response,
+    onChunk: (chunk: string) => void,
+    onComplete: () => void,
+    onError: (error: Error) => void
+  ): Promise<void> {
+    try {
       const reader = response.body?.getReader();
       if (!reader) {
         throw new Error('No response body reader available');
@@ -74,6 +121,10 @@ export class ChatService {
         const { done, value } = await reader.read();
         
         if (done) {
+          // Xử lý buffer cuối cùng nếu có
+          if (buffer.trim()) {
+            this.processStreamChunk(buffer.trim(), onChunk);
+          }
           onComplete();
           break;
         }
@@ -81,7 +132,7 @@ export class ChatService {
         const chunk = decoder.decode(value, { stream: true });
         buffer += chunk;
         
-        // Xử lý từng data chunk
+        // Xử lý từng data chunk (có thể có nhiều chunk trong một lần đọc)
         const dataChunks = buffer.split('data:');
         
         // Giữ lại phần cuối chưa hoàn chỉnh
@@ -90,29 +141,29 @@ export class ChatService {
         // Xử lý các chunk hoàn chỉnh
         for (const dataChunk of dataChunks) {
           if (dataChunk.trim()) {
-            this.processGeminiChunk(dataChunk.trim(), onChunk);
+            this.processStreamChunk(dataChunk.trim(), onChunk);
           }
         }
       }
     } catch (error) {
-      console.error('Error sending message:', error);
-      onError(error instanceof Error ? error : new Error('Unknown error'));
+      console.error('Error handling streaming response:', error);
+      onError(error instanceof Error ? error : new Error('Streaming error'));
     }
   }
 
-  // Xử lý chunk response từ Gemini
-  private static processGeminiChunk(dataStr: string, onChunk: (chunk: string) => void): void {
+  // Xử lý chunk response
+  private static processStreamChunk(dataStr: string, onChunk: (chunk: string) => void): void {
     // Remove any leading/trailing data: prefixes
     const cleanedData = dataStr.replace(/^data:\s*/, '').replace(/data:\s*$/, '').trim();
     
-    if (!cleanedData || cleanedData === 'data:' || cleanedData === '') {
+    if (!cleanedData || cleanedData === 'data:' || cleanedData === '' || cleanedData === '[DONE]') {
       return;
     }
 
     try {
       const parsed = JSON.parse(cleanedData);
       
-      // Kiểm tra format response từ backend của bạn
+      // Kiểm tra các format response khác nhau
       if (parsed.data && typeof parsed.data === 'string') {
         // Format: {"message": "", "code": 0, "data": "content"}
         onChunk(parsed.data);
@@ -122,11 +173,14 @@ export class ChatService {
       } else if (parsed.text) {
         // Format backup: {"text": "..."}
         onChunk(parsed.text);
+      } else if (parsed.response) {
+        // Format backup: {"response": "..."}
+        onChunk(parsed.response);
       } else if (typeof parsed === 'string') {
         // Nếu parsed result là string
         onChunk(parsed);
       } else {
-        console.log('Unknown Gemini chunk format:', parsed);
+        console.log('Unknown streaming chunk format:', parsed);
       }
     } catch (e) {
       // Nếu không parse được JSON, có thể là plain text
@@ -140,7 +194,7 @@ export class ChatService {
   // Lưu message history
   static async saveMessage(sessionId: string, role: string, content: string): Promise<void> {
     try {
-      await fetch(`${this.BACKEND_URL}/api/v1/chat/_save`, {
+      const response = await fetch(`${this.API_BASE_URL}?action=save_message`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -148,16 +202,51 @@ export class ChatService {
         body: JSON.stringify({
           session_id: sessionId,
           role: role,
-          content: content
+          content: content,
+          timestamp: new Date().toISOString()
         }),
       });
+
+      if (!response.ok) {
+        console.warn(`Failed to save message: ${response.status}`);
+        return; // Don't throw as this is not critical
+      }
+
+      const data = await response.json();
+      if (!data.success) {
+        console.warn('Failed to save message:', data.message);
+      }
     } catch (error) {
       console.error('Error saving message:', error);
       // Don't throw here as this is not critical
     }
   }
 
-  // Local storage helpers với user-specific keys
+  // Test connection to frontend API
+  static async testConnection(): Promise<boolean> {
+    try {
+      const response = await fetch(this.API_BASE_URL, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        console.warn(`Frontend API test failed: ${response.status}`);
+        return false;
+      }
+
+      const data = await response.json();
+      console.log('Frontend API test successful:', data);
+      return true;
+    } catch (error) {
+      console.error('Frontend API test error:', error);
+      return false;
+    }
+  }
+
+  // Local storage helpers với user-specific keys (không thay đổi)
   static saveSessionToLocal(session: ChatSession): void {
     try {
       const userId = this.getCurrentUserId();

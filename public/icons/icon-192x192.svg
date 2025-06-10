@@ -1,0 +1,32 @@
+<svg width="192" height="192" viewBox="0 0 192 192" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="maskableBg192" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4f46e5;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#06b6d4;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="maskablePin192" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ef4444;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#dc2626;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Safe area background (full bleed) -->
+  <rect width="192" height="192" fill="url(#maskableBg192)"/>
+  
+  <!-- Content in safe area (80% of size) -->
+  <g transform="translate(19.200000000000003, 19.200000000000003) scale(0.8)">
+    <!-- Globe -->
+    <circle cx="96" cy="86.4" r="18.75" fill="rgba(255,255,255,0.2)" stroke="rgba(255,255,255,0.3)" stroke-width="0.75"/>
+    
+    <!-- Map pin -->
+    <path d="M 96 81 C 88.5 81 82.875 86.625 82.875 94.125 C 82.875 101.625 96 114.75 96 114.75 C 96 114.75 109.125 101.625 109.125 94.125 C 109.125 86.625 103.5 81 96 81 Z" 
+          fill="url(#maskablePin192)" 
+          stroke="white" 
+          stroke-width="0.75"/>
+    
+    <circle cx="96" cy="94.125" r="5.625" fill="white"/>
+    <circle cx="96" cy="94.125" r="3.75" fill="#ef4444"/>
+  </g>
+</svg>

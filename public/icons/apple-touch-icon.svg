@@ -1,0 +1,28 @@
+<svg width="180" height="180" viewBox="0 0 180 180" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="appleBg180" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4f46e5;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#06b6d4;stop-opacity:1" />
+    </linearGradient>
+    
+    <filter id="appleShadow180">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+  
+  <!-- iOS rounded rectangle -->
+  <rect width="180" height="180" rx="36" fill="url(#appleBg180)" filter="url(#appleShadow180)"/>
+  
+  <!-- Content -->
+  <g transform="translate(18, 18) scale(0.8)">
+    <circle cx="90" cy="76.5" r="35" fill="rgba(255,255,255,0.2)"/>
+    
+    <path d="M 90 65 C 75 65 65 75 65 90 C 65 100 90 125 90 125 C 90 125 115 100 115 90 C 115 75 105 65 90 65 Z" 
+          fill="#ef4444" 
+          stroke="white" 
+          stroke-width="2"/>
+    
+    <circle cx="90" cy="90" r="12" fill="white"/>
+    <circle cx="90" cy="90" r="8" fill="#dc2626"/>
+  </g>
+</svg>

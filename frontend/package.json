@@ -4,7 +4,10 @@
     "build": "next build",
     "dev": "next dev",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "pwa:setup": "node scripts/setup-travelsense-pwa.js",
+    "pwa:test": "node scripts/test-pwa-basic.js",
+    "pwa:build": "npm run build && npm run pwa:test"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

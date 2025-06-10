@@ -610,6 +610,8 @@ const AdminPlacesPage = () => {
                             className="h-12 w-12 rounded-lg object-cover"
                             src={place.imageUrl}
                             alt={place.name}
+                            width={48}
+                            height={48}
                           />
                         ) : (
                           <div className="h-12 w-12 bg-gray-200 rounded-lg flex items-center justify-center">

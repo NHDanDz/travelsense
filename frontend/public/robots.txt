@@ -1,4 +1,13 @@
 User-agent: *
 Allow: /
+Disallow: /api/
+Disallow: /_next/
+Disallow: /admin/
 
-Sitemap: https://507c-113-185-48-241.ngrok-free.app/sitemap.xml
+# Sitemap sẽ tự động update với domain hiện tại
+Sitemap: /sitemap.xml
+
+# PWA specific
+Allow: /manifest.json
+Allow: /sw.js
+Allow: /icons/

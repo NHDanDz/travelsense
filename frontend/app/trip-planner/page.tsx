@@ -114,451 +114,169 @@ interface TripResponse {
 
 // AI Service với cấu trúc chuẩn hóa
 class TravelAIService {
-  // Tạo session mới
-  static async createNewSession(): Promise<string> {
-    try {
-      const response = await fetch(`${BACKEND_URL}/api/v1/chat/_new_chat`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to create session: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data.data.session_id;
-    } catch (error) {
-      console.error('Error creating new session:', error);
-      throw error;
-    }
-  }
-
-  // Tạo lịch trình với cấu trúc chuẩn
+  // Tạo lịch trình thông qua Frontend API
   static async generateItinerary(requestData: TripRequest): Promise<TripResponse> {
     try {
-      const sessionId = await this.createNewSession();
-      console.log('Created session:', sessionId);
-
-      // Tạo prompt chuẩn hóa
-      const prompt = this.buildStandardPrompt(requestData);
+      console.log('Calling frontend API with data:', requestData);
       
-      console.log('Sending standardized request:', requestData);
-      
-      const response = await fetch(`${BACKEND_URL}/api/v1/chat/_chat_complete`, {
+      const response = await fetch('/api/ai/generate-itinerary', {
         method: 'POST',
         headers: {
-          'Accept': 'application/json',
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          session_id: sessionId,
-          content: prompt,
-          metadata: {
-            requestType: "trip_planning",
-            expectedFormat: "structured_json",
-            ...requestData
-          }
-        }),
+        body: JSON.stringify(requestData),
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('API Error:', response.status, errorText);
-        throw new Error(`Failed to generate itinerary: ${response.status}`);
+        const errorData = await response.json();
+        console.error('Frontend API Error:', response.status, errorData);
+        throw new Error(errorData.message || `Frontend API failed: ${response.status}`);
       }
 
-      const data = await response.json();
-      console.log('Received response:', data);
+      const result = await response.json();
+      console.log('Frontend API response:', result);
       
-      return this.parseAndValidateResponse(data.data.response, requestData);
+      if (!result.success) {
+        throw new Error(result.message || 'API call was not successful');
+      }
+
+      return result.data;
     } catch (error) {
-      console.error('Error generating itinerary:', error);
+      console.error('Error calling frontend API:', error);
       throw error;
     }
   }
 
-  // Xây dựng prompt chuẩn
-  // Cập nhật buildStandardPrompt trong TravelAIService
-private static buildStandardPrompt(request: TripRequest): string {
-  const startDate = new Date(request.startDate);
-  const endDate = new Date(request.endDate);
+  // Convert về format cũ để tương thích với database
+  static convertToTripFormat(tripResponse: TripResponse, startDate: string): { places: Place[], days: Day[] } {
+    const places: Place[] = [];
+    const days: Day[] = [];
 
-  return `Tạo lịch trình du lịch ${request.destination} ${request.duration} ngày.
-THÔNG TIN CHUYẾN ĐI:
+    tripResponse.itinerary.forEach((dayData, index) => {
+      const dayPlaces: Place[] = [];
+      const dayDate = dayData.date || this.formatDate(new Date(startDate), index);
 
-Điểm đến: ${request.destination}
-Ngày bắt đầu: ${request.startDate}
-Ngày kết thúc: ${request.endDate}
-Số ngày: ${request.duration}
-Số người: ${request.travelers}
-Ngân sách: ${request.budget ? this.formatCurrency(request.budget) : 'Không giới hạn'}
-Sở thích: ${request.preferences || 'Không có yêu cầu đặc biệt'}
-Thể loại: ${request.tags.length > 0 ? request.tags.join(', ') : 'Chung'}
-YÊU CẦU ĐỊNH DẠNG JSON CHUẨN DATABASE:
-{
-"tripName": "tên chuyến đi phù hợp",
-"destination": "${request.destination}",
-"duration": ${request.duration},
-"estimatedBudget": tổng ngân sách dự kiến (VND),
-"itinerary": [
-{
-"day": 1,
-"date": "${this.formatDate(startDate, 0)}",
-"theme": "chủ đề của ngày",
-"activities": [
-{
-"name": "tên hoạt động cụ thể",
-"time": "${this.formatDate(startDate, 0)}T09:00:00+07:00",
-"duration": 120,
-"location": {
-"name": "tên địa điểm chính xác",
-"address": "địa chỉ đầy đủ",
-"coordinates": {
-"latitude": 21.0285,
-"longitude": 105.8542
-}
-},
-"type": "restaurant|tourist_attraction|cafe|hotel|shopping",
-"description": "mô tả chi tiết hoạt động",
-"estimatedCost": chi phí dự kiến (VND),
-"rating": 4.5,
-"notes": "lưu ý thêm"
-}
-]
-}
-]
-}
+      dayData.activities.forEach((activity, activityIndex) => {
+        // Phân tích thời gian
+        let startTime = activity.time;
+        let endTime: string | undefined;
 
-QUAN TRỌNG - ĐỊNH DẠNG DỮ LIỆU:
-
-time: Sử dụng định dạng ISO-8601 DateTime, kết hợp ngày (date) của ngày đó với thời gian cụ thể (ví dụ: "${this.formatDate(startDate, 0)}T09:00:00+07:00")
-KHÔNG dùng "Morning", "Afternoon", "Evening" hoặc định dạng "HH:MM"
-Thời gian từ 06:00 đến 22:00, sử dụng múi giờ +07:00 (Việt Nam)
-coordinates: Sử dụng tọa độ thực của ${request.destination}
-latitude: số thập phân (ví dụ: 21.0285)
-longitude: số thập phân (ví dụ: 105.8542)
-type: CHỈ sử dụng các giá trị sau:
-"tourist_attraction" (cho điểm tham quan)
-"restaurant" (cho nhà hàng, quán ăn)
-"cafe" (cho quán cà phê)
-"hotel" (cho khách sạn, nơi ở)
-"shopping" (cho mua sắm)
-duration: Thời gian tính bằng phút (số nguyên)
-Tham quan: 60-180 phút
-Ăn uống: 60-90 phút
-Mua sắm: 90-120 phút
-rating: Số thập phân từ 1.0 đến 5.0
-estimatedCost: Số nguyên (VND), không có dấu phẩy
-address: Địa chỉ đầy đủ, cụ thể tại ${request.destination}
-VÍ DỤ THỜI GIAN HỢP LÝ (ĐỊNH DẠNG ISO-8601):
-
-"${this.formatDate(startDate, 0)}T08:00:00+07:00": Ăn sáng
-"${this.formatDate(startDate, 0)}T09:30:00+07:00": Tham quan điểm đầu tiên
-"${this.formatDate(startDate, 0)}T12:00:00+07:00": Ăn trưa
-"${this.formatDate(startDate, 0)}T14:00:00+07:00": Tham quan chiều
-"${this.formatDate(startDate, 0)}T17:30:00+07:00": Nghỉ ngơi/cafe
-"${this.formatDate(startDate, 0)}T19:00:00+07:00": Ăn tối
-"${this.formatDate(startDate, 0)}T21:00:00+07:00": Vui chơi tối
-CHỈ trả về JSON hợp lệ, không có markdown, không có text thừa.`;
-}
-  // Xử lý và validate response
-  private static parseAndValidateResponse(responseText: string, originalRequest: TripRequest): TripResponse {
-    try {
-      // Làm sạch response
-      let jsonString = responseText.trim();
-      
-      // Loại bỏ các định dạng markdown
-      const patterns = [
-        /```json\s*\n?([\s\S]*?)\n?```/i,
-        /```\s*\n?([\s\S]*?)\n?```/i,
-        /`([\s\S]*?)`/,
-        /^[^{]*({[\s\S]*})[^}]*$/
-      ];
-      
-      for (const pattern of patterns) {
-        const match = jsonString.match(pattern);
-        if (match && match[1]) {
-          jsonString = match[1].trim();
-          break;
+        // Chuẩn hóa định dạng thời gian nếu cần
+        if (startTime && !startTime.match(/^\d{2}:\d{2}$/)) {
+          startTime = this.normalizeTimeFormat(startTime);
         }
-      }
 
-      // Parse JSON
-      const parsed = JSON.parse(jsonString);
-      
-      // Validate cấu trúc
-      const validated = this.validateAndFixStructure(parsed, originalRequest);
-      
-      console.log('Validated response:', validated);
-      return validated;
-      
-    } catch (parseError) {
-      console.error('Parse error:', parseError);
-      console.error('Raw response:', responseText);
-      
-      // Fallback structure
-      return this.createFallbackResponse(originalRequest);
-    }
-  }
+        // Chuyển đổi sang định dạng ISO-8601 DateTime
+        let startDateTime: string | undefined;
+        if (startTime) {
+          startDateTime = `${dayDate}T${startTime}:00Z`; // Kết hợp ngày và giờ
+        }
 
-  // Validate và sửa cấu trúc
-  private static validateAndFixStructure(data: any, request: TripRequest): TripResponse {
-    const result: TripResponse = {
-      tripName: data.tripName || `Khám phá ${request.destination}`,
-      destination: data.destination || request.destination,
-      duration: data.duration || request.duration,
-      estimatedBudget: data.estimatedBudget || undefined,
-      itinerary: []
-    };
+        // Tính toán thời gian kết thúc nếu có thời lượng
+        if (startTime && activity.duration) {
+          endTime = this.calculateEndTime(startTime, activity.duration);
+          if (endTime) {
+            endTime = `${dayDate}T${endTime}:00Z`; // Kết hợp ngày và giờ
+          }
+        }
 
-    // Validate itinerary
-    if (data.itinerary && Array.isArray(data.itinerary)) {
-      const startDate = new Date(request.startDate);
-      
-      data.itinerary.forEach((day: any, index: number) => {
-        const dayDate = new Date(startDate);
-        dayDate.setDate(dayDate.getDate() + index);
-        
-        const dayData: DayResponse = {
-          day: day.day || index + 1,
-          date: day.date || dayDate.toISOString().split('T')[0],
-          theme: day.theme || `Ngày ${index + 1}`,
-          activities: []
+        const place: Place = {
+          id: `place_${dayData.day}_${activityIndex}_${Date.now()}`,
+          name: activity.name,
+          type: this.validatePlaceType(activity.type),
+          address: activity.location.address || activity.location.name,
+          latitude: activity.location.coordinates.latitude.toString(),
+          longitude: activity.location.coordinates.longitude.toString(),
+          image: this.getDefaultImage(activity.type),
+          startTime: startDateTime, // Định dạng ISO-8601
+          endTime: endTime, // Định dạng ISO-8601
+          duration: activity.duration,
+          rating: activity.rating,
+          notes: activity.description || activity.notes,
+          openingHours: this.getDefaultOpeningHours(activity.type)
         };
 
-        // Validate activities
-        if (day.activities && Array.isArray(day.activities)) {
-          day.activities.forEach((activity: any) => {
-            if (activity.name && activity.location) {
-              const validatedActivity: ActivityResponse = {
-                name: activity.name,
-                time: activity.time || "09:00",
-                duration: activity.duration || 60,
-                location: {
-                  name: activity.location.name || "Địa điểm",
-                  address: activity.location.address || activity.location.name || "",
-                  coordinates: {
-                    latitude: activity.location.coordinates?.latitude || 0,
-                    longitude: activity.location.coordinates?.longitude || 0
-                  }
-                },
-                type: activity.type || "tourist_attraction",
-                description: activity.description || "",
-                estimatedCost: activity.estimatedCost || 0,
-                rating: activity.rating || 4,
-                notes: activity.notes || ""
-              };
-              
-              dayData.activities.push(validatedActivity);
-            }
-          });
-        }
-
-        result.itinerary.push(dayData);
+        dayPlaces.push(place);
+        places.push(place);
       });
-    }
 
-    // Đảm bảo có ít nhất 1 ngày
-    if (result.itinerary.length === 0) {
-      const startDate = new Date(request.startDate);
-      for (let i = 0; i < request.duration; i++) {
-        const dayDate = new Date(startDate);
-        dayDate.setDate(dayDate.getDate() + i);
-        
-        result.itinerary.push({
-          day: i + 1,
-          date: dayDate.toISOString().split('T')[0],
-          theme: `Khám phá ${request.destination}`,
-          activities: []
-        });
-      }
-    }
-
-    return result;
-  }
-
-  // Tạo fallback response
-  private static createFallbackResponse(request: TripRequest): TripResponse {
-    const startDate = new Date(request.startDate);
-    const itinerary: DayResponse[] = [];
-
-    for (let i = 0; i < request.duration; i++) {
-      const dayDate = new Date(startDate);
-      dayDate.setDate(dayDate.getDate() + i);
-      
-      itinerary.push({
-        day: i + 1,
-        date: dayDate.toISOString().split('T')[0],
-        theme: `Ngày ${i + 1} - Khám phá ${request.destination}`,
-        activities: [{
-          name: `Khám phá ${request.destination}`,
-          time: "09:00",
-          duration: 480, // 8 tiếng
-          location: {
-            name: request.destination,
-            address: request.destination,
-            coordinates: { latitude: 0, longitude: 0 }
-          },
-          type: "tourist_attraction",
-          description: "Tự do khám phá địa điểm địa phương",
-          estimatedCost: 500000,
-          rating: 4,
-          notes: "Lịch trình sẽ được cập nhật chi tiết sau"
-        }]
+      days.push({
+        dayNumber: dayData.day,
+        date: dayDate,
+        places: dayPlaces
       });
-    }
-
-    return {
-      tripName: `Khám phá ${request.destination}`,
-      destination: request.destination,
-      duration: request.duration,
-      estimatedBudget: request.budget,
-      itinerary
-    };
-  }
-
-  // Convert về format cũ để tương thích
-  // Cập nhật convertToTripFormat trong TravelAIService
-
-static convertToTripFormat(tripResponse: TripResponse, startDate: string): { places: Place[], days: Day[] } {
-  const places: Place[] = [];
-  const days: Day[] = [];
-
-  tripResponse.itinerary.forEach((dayData, index) => {
-    const dayPlaces: Place[] = [];
-    const dayDate = dayData.date || this.formatDate(new Date(startDate), index);
-
-    dayData.activities.forEach((activity, activityIndex) => {
-      // Phân tích thời gian
-      let startTime = activity.time;
-      let endTime: string | undefined;
-
-      // Chuẩn hóa định dạng thời gian nếu cần
-      if (startTime && !startTime.match(/^\d{2}:\d{2}$/)) {
-        startTime = this.normalizeTimeFormat(startTime);
-      }
-
-      // Chuyển đổi sang định dạng ISO-8601 DateTime
-      let startDateTime: string | undefined;
-      if (startTime) {
-        startDateTime = `${dayDate}T${startTime}:00Z`; // Kết hợp ngày và giờ
-      }
-
-      // Tính toán thời gian kết thúc nếu có thời lượng
-      if (startTime && activity.duration) {
-        endTime = this.calculateEndTime(startTime, activity.duration);
-        if (endTime) {
-          endTime = `${dayDate}T${endTime}:00Z`; // Kết hợp ngày và giờ
-        }
-      }
-
-      const place: Place = {
-        id: `place_${dayData.day}_${activityIndex}_${Date.now()}`,
-        name: activity.name,
-        type: this.validatePlaceType(activity.type),
-        address: activity.location.address || activity.location.name,
-        latitude: activity.location.coordinates.latitude.toString(),
-        longitude: activity.location.coordinates.longitude.toString(),
-        image: this.getDefaultImage(activity.type),
-        startTime: startDateTime, // Định dạng ISO-8601
-        endTime: endTime, // Định dạng ISO-8601
-        duration: activity.duration,
-        rating: activity.rating,
-        notes: activity.description || activity.notes,
-        openingHours: this.getDefaultOpeningHours(activity.type)
-      };
-
-      dayPlaces.push(place);
-      places.push(place);
     });
 
-    days.push({
-      dayNumber: dayData.day,
-      date: dayDate,
-      places: dayPlaces
-    });
-  });
-
-  return { places, days };
-}
-// Helper methods
-private static normalizeTimeFormat(timeStr: string): string {
-  const lowerTime = timeStr.toLowerCase();
-  
-  if (lowerTime.includes('morning') || lowerTime.includes('sáng')) {
-    return '09:00';
-  } else if (lowerTime.includes('afternoon') || lowerTime.includes('chiều')) {
-    return '14:00';
-  } else if (lowerTime.includes('evening') || lowerTime.includes('tối')) {
-    return '18:00';
+    return { places, days };
   }
-  
-  // Try to extract HH:MM pattern
-  const timeMatch = timeStr.match(/(\d{1,2}):(\d{2})/);
-  if (timeMatch) {
-    const hour = parseInt(timeMatch[1]);
-    const minute = parseInt(timeMatch[2]);
-    return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-  }
-  
-  return '09:00'; // Default fallback
-}
-
-private static calculateEndTime(startTime: string, durationMinutes: number): string {
-  const [hours, minutes] = startTime.split(':').map(Number);
-  const startMinutes = hours * 60 + minutes;
-  const endMinutes = startMinutes + durationMinutes;
-  
-  const endHours = Math.floor(endMinutes / 60) % 24;
-  const endMins = endMinutes % 60;
-  
-  return `${endHours.toString().padStart(2, '0')}:${endMins.toString().padStart(2, '0')}`;
-}
-
-private static validatePlaceType(type?: string): string {
-  const validTypes = ['tourist_attraction', 'restaurant', 'cafe', 'hotel', 'shopping'];
-  return validTypes.includes(type || '') ? type! : 'tourist_attraction';
-}
-
-private static getDefaultImage(type?: string): string {
-  const imageMap: Record<string, string> = {
-    'tourist_attraction': '/images/place-default.jpg',
-    'restaurant': '/images/restaurant-default.jpg',
-    'cafe': '/images/cafe-default.jpg',
-    'hotel': '/images/hotel-default.jpg',
-    'shopping': '/images/shopping-default.jpg'
-  };
-  
-  return imageMap[type || 'tourist_attraction'] || '/images/place-default.jpg';
-}
-
-private static getDefaultOpeningHours(type?: string): string {
-  const hoursMap: Record<string, string> = {
-    'tourist_attraction': '8:00 - 17:00',
-    'restaurant': '11:00 - 22:00',
-    'cafe': '7:00 - 22:00',
-    'hotel': '24/7',
-    'shopping': '9:00 - 21:00'
-  };
-  
-  return hoursMap[type || 'tourist_attraction'] || '9:00 - 17:00';
-}
 
   // Helper methods
+  private static normalizeTimeFormat(timeStr: string): string {
+    const lowerTime = timeStr.toLowerCase();
+    
+    if (lowerTime.includes('morning') || lowerTime.includes('sáng')) {
+      return '09:00';
+    } else if (lowerTime.includes('afternoon') || lowerTime.includes('chiều')) {
+      return '14:00';
+    } else if (lowerTime.includes('evening') || lowerTime.includes('tối')) {
+      return '18:00';
+    }
+    
+    // Try to extract HH:MM pattern
+    const timeMatch = timeStr.match(/(\d{1,2}):(\d{2})/);
+    if (timeMatch) {
+      const hour = parseInt(timeMatch[1]);
+      const minute = parseInt(timeMatch[2]);
+      return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+    }
+    
+    return '09:00'; // Default fallback
+  }
+
+  private static calculateEndTime(startTime: string, durationMinutes: number): string {
+    const [hours, minutes] = startTime.split(':').map(Number);
+    const startMinutes = hours * 60 + minutes;
+    const endMinutes = startMinutes + durationMinutes;
+    
+    const endHours = Math.floor(endMinutes / 60) % 24;
+    const endMins = endMinutes % 60;
+    
+    return `${endHours.toString().padStart(2, '0')}:${endMins.toString().padStart(2, '0')}`;
+  }
+
+  private static validatePlaceType(type?: string): string {
+    const validTypes = ['tourist_attraction', 'restaurant', 'cafe', 'hotel', 'shopping'];
+    return validTypes.includes(type || '') ? type! : 'tourist_attraction';
+  }
+
+  private static getDefaultImage(type?: string): string {
+    const imageMap: Record<string, string> = {
+      'tourist_attraction': '/images/place-default.jpg',
+      'restaurant': '/images/restaurant-default.jpg',
+      'cafe': '/images/cafe-default.jpg',
+      'hotel': '/images/hotel-default.jpg',
+      'shopping': '/images/shopping-default.jpg'
+    };
+    
+    return imageMap[type || 'tourist_attraction'] || '/images/place-default.jpg';
+  }
+
+  private static getDefaultOpeningHours(type?: string): string {
+    const hoursMap: Record<string, string> = {
+      'tourist_attraction': '8:00 - 17:00',
+      'restaurant': '11:00 - 22:00',
+      'cafe': '7:00 - 22:00',
+      'hotel': '24/7',
+      'shopping': '9:00 - 21:00'
+    };
+    
+    return hoursMap[type || 'tourist_attraction'] || '9:00 - 17:00';
+  }
+
   private static formatDate(date: Date, addDays: number = 0): string {
     const newDate = new Date(date);
     newDate.setDate(newDate.getDate() + addDays);
     return newDate.toISOString().split('T')[0];
-  }
-
-  private static formatCurrency(amount: number): string {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND'
-    }).format(amount);
   }
 }
 

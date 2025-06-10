@@ -1,0 +1,32 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="maskableBg512" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4f46e5;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#06b6d4;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="maskablePin512" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ef4444;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#dc2626;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Safe area background (full bleed) -->
+  <rect width="512" height="512" fill="url(#maskableBg512)"/>
+  
+  <!-- Content in safe area (80% of size) -->
+  <g transform="translate(51.2, 51.2) scale(0.8)">
+    <!-- Globe -->
+    <circle cx="256" cy="230.4" r="50" fill="rgba(255,255,255,0.2)" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
+    
+    <!-- Map pin -->
+    <path d="M 256 216 C 236 216 221 231 221 251 C 221 271 256 306 256 306 C 256 306 291 271 291 251 C 291 231 276 216 256 216 Z" 
+          fill="url(#maskablePin512)" 
+          stroke="white" 
+          stroke-width="2"/>
+    
+    <circle cx="256" cy="251" r="15" fill="white"/>
+    <circle cx="256" cy="251" r="10" fill="#ef4444"/>
+  </g>
+</svg>
